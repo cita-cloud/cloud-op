@@ -1,0 +1,42 @@
+[package]
+name = "cloud-op"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+clap = { version = "3.0.0", features = ["derive"] }
+prost = "0.8.0"
+rand = "0.8.0"
+hex = "0.4.0"
+cita-database = "0.1.0"
+rlp = "0.5"
+bincode = "0.8.0"
+bloomchain = "0.2"
+
+# crypto_sm
+libsm = { version = "0.4.0", optional = true }
+# crypto_eth
+tiny-keccak = { version = "2.0.0", features = ["keccak"], optional = true }
+# storage
+storage_rocksdb = { git = "https://github.com/cita-cloud/storage_rocksdb", branch = "support-op", package = "storage", optional = true }
+# consensus
+consensus_bft = { git = "https://github.com/cita-cloud/consensus_bft", branch = "support-op", package = "consensus", optional = true }
+#consensus_raft = { git = "https://github.com/cita-cloud/consensus_raft", branch = "support-op", package = "consensus", optional = true }
+
+controller = { git = "https://github.com/cita-cloud/controller", branch = "support-op" }
+executor_evm = { git = "https://github.com/cita-cloud/executor_evm", branch = "support-op", package = "executor" }
+
+cloud-util = { git = "https://github.com/cita-cloud/cloud-util" }
+cita_cloud_proto = { git = "https://github.com/cita-cloud/cita_cloud_proto" }
+status_code = { package = "cloud-code", git = "https://github.com/cita-cloud/status_code" }
+
+[features]
+default = ["crypto_sm", "rocksdb", "bft"]
+
+crypto_sm = ["libsm"]
+crypto_eth = ["tiny-keccak"]
+rocksdb = ["storage_rocksdb"]
+bft = ["consensus_bft"]
+#raft = ["consensus_raft"]
