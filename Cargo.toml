@@ -1,6 +1,8 @@
 [package]
 name = "cloud-op"
 version = "0.1.0"
+authors = ["Yieazy <yuitta@163.com>"]
+license = "Apache-2.0"
 edition = "2021"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
