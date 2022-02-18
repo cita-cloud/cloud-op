@@ -59,7 +59,7 @@ enum Commands {
         )]
         config_path: PathBuf,
         /// node root path
-        #[clap(required = true, parse(from_os_str), short)]
+        #[clap(required = true, parse(from_os_str), short, default_value = ".")]
         node_root: PathBuf,
         /// the specified height that you want to recover to
         #[clap(required = true)]
