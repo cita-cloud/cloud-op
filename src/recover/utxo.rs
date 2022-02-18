@@ -62,6 +62,7 @@ pub fn handle_utxo_tx(db: &DB, tx_hash: Vec<u8>, height: u64, lock_id: u64, modi
                     let pre_tx_hash = tx.transaction.unwrap().pre_tx_hash;
                     if pre_tx_hash == vec![0u8; 33] {
                         println!("delete lock_id({}) content to be init state", lock_id);
+                        db.delete(0, lock_id.to_be_bytes().to_vec()).unwrap();
                     } else {
                         handle_utxo_tx(db, pre_tx_hash, height, lock_id, true);
                     }
