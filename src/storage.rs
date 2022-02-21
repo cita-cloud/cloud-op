@@ -13,7 +13,4 @@
 // limitations under the License.
 
 #[cfg(feature = "rocksdb")]
-pub use storage_rocksdb::{
-    db::DB,
-    config::StorageConfig,
-};
+pub use storage_rocksdb::{config::StorageConfig, db::DB};
