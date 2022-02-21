@@ -21,9 +21,9 @@ use executor_evm::{
         H256,
     },
 };
-use std::path::{Path, PathBuf};
+use std::path::Path;
 
-pub fn executor_recover(config_path: &PathBuf, height: u64) {
+pub fn executor_recover(config_path: &Path, height: u64) {
     let executor_config = ExecutorConfig::new(config_path.to_str().unwrap());
     let state_path = executor_config.db_path.clone() + "/statedb";
     state_recover(&state_path, height);
@@ -38,7 +38,7 @@ fn state_recover(state_path: &str, height: u64) {
     }
 
     let database_config = Config::with_category_num(NUM_COLUMNS);
-    let exec_db = RocksDB::open(&state_path, &database_config).unwrap();
+    let exec_db = RocksDB::open(state_path, &database_config).unwrap();
 
     let pkey = BlockNumber2Hash(height).get_index().to_vec();
     let dst_hash = exec_db
@@ -62,7 +62,7 @@ fn chain_db_recover(chain_path: &str, height: u64) {
     }
 
     let database_config = Config::with_category_num(NUM_COLUMNS);
-    let chain_db = RocksDB::open(&chain_path, &database_config).expect("DB file not found");
+    let chain_db = RocksDB::open(chain_path, &database_config).expect("DB file not found");
 
     let hkey = BlockNumber2Header(height).get_index().to_vec();
 

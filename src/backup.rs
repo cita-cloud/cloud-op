@@ -12,6 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-use std::path::PathBuf;
+use std::path::Path;
 
-pub fn backup(chain_db: &PathBuf) {}
+#[allow(dead_code)]
+pub fn backup(_chain_db: &Path) {}

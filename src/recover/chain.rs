@@ -18,9 +18,9 @@ use cita_cloud_proto::blockchain::CompactBlock;
 use controller::config::ControllerConfig;
 use prost::Message;
 use std::fs::remove_dir_all;
-use std::path::PathBuf;
+use std::path::Path;
 
-pub fn chain_recover(config_path: &PathBuf, height: u64) {
+pub fn chain_recover(config_path: &Path, height: u64) {
     let storage_config = StorageConfig::new(config_path.to_str().unwrap());
     let db = DB::new(&storage_config.db_path, &storage_config);
 

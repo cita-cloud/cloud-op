@@ -17,13 +17,13 @@ use cita_cloud_proto::blockchain::raw_transaction::Tx::UtxoTx;
 use cita_cloud_proto::blockchain::RawTransaction;
 use controller::config::ControllerConfig;
 use prost::Message;
-use std::path::PathBuf;
+use std::path::Path;
 
 pub const LOCK_ID_VERSION: u64 = 1_000;
 pub const LOCK_ID_CHAIN_ID: u64 = 1_001;
 pub const LOCK_ID_BUTTON: u64 = 1_007;
 
-pub fn utxo_recover(config_path: &PathBuf, height: u64) {
+pub fn utxo_recover(config_path: &Path, height: u64) {
     let storage_config = StorageConfig::new(config_path.to_str().unwrap());
     let db = DB::new(&storage_config.db_path, &storage_config);
     let controller_config = ControllerConfig::new(config_path.to_str().unwrap());

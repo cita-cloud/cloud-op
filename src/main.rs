@@ -18,7 +18,7 @@ compile_error!("features `crypto_sm` and `crypto_eth` are mutually exclusive");
 compile_error!("features `raft` and `bft` are mutually exclusive");
 
 use crate::recover::recover;
-use clap::{AppSettings, Parser, Subcommand};
+use clap::{Parser, Subcommand};
 use std::env::{current_dir, set_current_dir};
 use std::path::PathBuf;
 
@@ -33,7 +33,7 @@ struct Cli {
 #[derive(Subcommand)]
 enum Commands {
     /// hot backup executor_evm & chain db, ONLY USE IN EVM MODE
-    #[clap(setting(AppSettings::ArgRequiredElseHelp))]
+    #[clap(arg_required_else_help = true)]
     Backup {
         /// chain config path
         #[clap(
@@ -48,7 +48,7 @@ enum Commands {
         node_root: PathBuf,
     },
     /// recover chain status to specified height, ONLY USE IN EVM MODE
-    #[clap(setting(AppSettings::ArgRequiredElseHelp))]
+    #[clap(arg_required_else_help = true)]
     Recover {
         /// chain config path
         #[clap(
@@ -72,11 +72,11 @@ fn main() {
 
     match cli.command {
         Commands::Backup {
-            mut config_path,
+            config_path: mut _config_path,
             node_root,
         } => {
-            if !config_path.is_absolute() {
-                config_path = current_dir().unwrap().join(config_path);
+            if !_config_path.is_absolute() {
+                _config_path = current_dir().unwrap().join(_config_path);
             }
             assert!(set_current_dir(&node_root).is_ok());
         }
