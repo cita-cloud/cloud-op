@@ -24,7 +24,7 @@ SUBCOMMANDS:
 
 ## cita-cloud version
 
-cita-cloud version >= v6.3.3 or choice branch: support-op
+cita-cloud version choice branch: [support-op](https://github.com/cita-cloud/runner_local/tree/support-op)
 
 
 ## function
@@ -52,7 +52,7 @@ ARGS:
 OPTIONS:
     -c <CONFIG_PATH>        chain config path [default: config.toml]
     -h, --help              Print help information
-    -n <NODE_ROOT>          node root path
+    -n <NODE_ROOT>          node root path [default: .]
 ```
 
 #### 示例：
@@ -64,12 +64,12 @@ $ cloud-op recover 2 -n <YOUR_NODE_PATH> -c <YOUR_CONFIG_PATH>
 #### 示例结果：
 
 ```
-lock_id1000 never change from genesis
-lock_id1001 never change from genesis
-lock_id1002 never change from genesis
-lock_id1003 never change from genesis
-lock_id1004 never change from genesis
-lock_id1005 never change from genesis
-lock_id1006 never change from genesis
+lock_id(1000) never change from genesis
+lock_id(1001) never change from genesis
+lock_id(1002) never change from genesis
+lock_id(1003) never change from genesis
+lock_id(1004) never change from genesis
+lock_id(1005) never change from genesis
+lock_id(1006) never change from genesis
 ```
 
