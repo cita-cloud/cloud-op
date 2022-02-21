@@ -18,10 +18,10 @@ use crate::recover::utxo::utxo_recover;
 use std::path::PathBuf;
 
 pub fn recover(config_path: PathBuf, height: u64) {
-    // recover executor
-    executor_recover(&config_path, height);
     // recover chain db
     chain_recover(&config_path, height);
+    // recover executor
+    executor_recover(&config_path, height);
     // recover utxo
     utxo_recover(&config_path, height);
     // recover executor

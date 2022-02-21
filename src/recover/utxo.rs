@@ -35,8 +35,9 @@ pub fn utxo_recover(config_path: &PathBuf, height: u64) {
                     && lock_id != LOCK_ID_CHAIN_ID
                 {
                     handle_utxo_tx(&db, data_or_tx_hash, height, lock_id, false);
+                } else {
+                    println!("lock_id({}) never change from genesis", lock_id);
                 }
-                println!("lock_id{} never change from genesis", lock_id);
             }
             Err(status) => {
                 println!("load utxo({}) met error: {:?}. Is this a new chain or version lower than v6.3.2", lock_id, status);
@@ -82,5 +83,7 @@ pub fn handle_utxo_tx(db: &DB, tx_hash: Vec<u8>, height: u64, lock_id: u64, modi
         );
         db.store(0, lock_id.to_be_bytes().to_vec(), tx_hash)
             .unwrap();
+    } else {
+        println!("lock_id({}) keep change", lock_id);
     }
 }

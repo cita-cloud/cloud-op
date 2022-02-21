@@ -24,14 +24,6 @@ pub fn chain_recover(config_path: &PathBuf, height: u64) {
     let storage_config = StorageConfig::new(config_path.to_str().unwrap());
     let db = DB::new(&storage_config.db_path, &storage_config);
 
-    // remove controller wal file
-    let controller_config = ControllerConfig::new(config_path.to_str().unwrap());
-    remove_dir_all(&controller_config.wal_path).unwrap();
-
-    // remove consensus wal file
-    let consensus_config = ConsensusConfig::new(config_path.to_str().unwrap());
-    remove_dir_all(&consensus_config.wal_path).unwrap();
-
     let current_height_bytes = db.load(0, 0u64.to_be_bytes().to_vec()).unwrap();
     let mut buf: [u8; 8] = [0; 8];
     buf.clone_from_slice(&current_height_bytes[..8]);
@@ -43,6 +35,14 @@ pub fn chain_recover(config_path: &PathBuf, height: u64) {
             height, current_height
         );
     }
+
+    // remove controller wal file
+    let controller_config = ControllerConfig::new(config_path.to_str().unwrap());
+    remove_dir_all(&controller_config.wal_path).unwrap();
+
+    // remove consensus wal file
+    let consensus_config = ConsensusConfig::new(config_path.to_str().unwrap());
+    remove_dir_all(&consensus_config.wal_path).unwrap();
 
     let height_bytes = (height + 1).to_be_bytes().to_vec();
     let compact_block_bytes = db.load(10, height_bytes).unwrap();
