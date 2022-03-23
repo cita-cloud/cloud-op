@@ -38,11 +38,11 @@ pub fn chain_recover(config_path: &Path, height: u64) {
 
     // remove controller wal file
     let controller_config = ControllerConfig::new(config_path.to_str().unwrap());
-    remove_dir_all(&controller_config.wal_path).unwrap();
+    let _ = remove_dir_all(&controller_config.wal_path);
 
     // remove consensus wal file
     let consensus_config = ConsensusConfig::new(config_path.to_str().unwrap());
-    remove_dir_all(&consensus_config.wal_path).unwrap();
+    let _ = remove_dir_all(&consensus_config.wal_path);
 
     let height_bytes = (height + 1).to_be_bytes().to_vec();
     let compact_block_bytes = db.load(10, height_bytes).unwrap();
