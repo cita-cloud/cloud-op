@@ -24,7 +24,7 @@ SUBCOMMANDS:
 
 ## cita-cloud version
 
-cita-cloud version choice branch: [support-op](https://github.com/cita-cloud/runner_local/tree/support-op)
+cita-cloud version choice: v6.3.3+
 
 
 ## function
