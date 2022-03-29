@@ -57,6 +57,40 @@ OPTIONS:
 
 #### 示例：
 
+##### 部署
+
+```yaml
+apiVersion: v1
+kind: Pod
+metadata:
+  creationTimestamp: null
+  labels:
+    run: direction-watch
+  name: direction-watch
+spec:
+  containers:
+  - image: yuitta/cloud-tools:latest
+    imagePullPolicy: Always
+    name: direction-watch
+    resources: {}
+    volumeMounts:
+      - mountPath: "/mnt"
+        name: task-pv-storage
+    command:
+      - sh
+      - -c
+      - sleep infinity
+  volumes:
+    - name: task-pv-storage
+      persistentVolumeClaim:
+        claimName: test-op-pvc (需要操作的节点pvc)
+  dnsPolicy: ClusterFirst
+  restartPolicy: Always
+status: {}
+```
+
+##### 执行
+
 ```shell
 $ cloud-op recover 2 -n <YOUR_NODE_PATH> -c <YOUR_CONFIG_PATH>
 ```
