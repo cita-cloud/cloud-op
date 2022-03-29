@@ -70,6 +70,7 @@ metadata:
 spec:
   containers:
   - image: yuitta/cloud-tools:latest
+    imagePullPolicy: Always
     name: direction-watch
     resources: {}
     volumeMounts:

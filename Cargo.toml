@@ -37,7 +37,7 @@ cita_cloud_proto = { git = "https://github.com/cita-cloud/cita_cloud_proto" }
 status_code = { package = "cloud-code", git = "https://github.com/cita-cloud/status_code" }
 
 [features]
-default = ["crypto_sm", "rocksdb", "raft"]
+default = ["crypto_sm", "rocksdb", "bft"]
 
 
 crypto_sm = ["libsm"]
