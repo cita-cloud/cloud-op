@@ -36,7 +36,7 @@ pub fn state_backup_inner(config_path: PathBuf, backup_path: PathBuf, height: u6
 
     let config = Config::with_category_num(NUM_COLUMNS);
     let executor_config = ExecutorConfig::new(config_path.to_str().unwrap());
-    let statedb_path = executor_config.db_path.clone() + "/statedb";
+    let statedb_path = executor_config.db_path + "/statedb";
     let state_rocks_db = Arc::new(RocksDB::open(&statedb_path, &config).unwrap());
 
     let backup_path = backup_path.join(height.to_string());

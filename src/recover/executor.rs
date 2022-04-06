@@ -88,7 +88,7 @@ fn chain_db_recover(chain_path: &str, height: u64) {
 pub fn move_state(config_path: &Path, backup_path: &Path, height: u64) {
     let snap_path = backup_path.join(height.to_string());
     let executor_config = ExecutorConfig::new(config_path.to_str().unwrap());
-    let state_path = executor_config.db_path.clone() + "/statedb";
+    let state_path = executor_config.db_path + "/statedb";
 
     let _ = remove_dir_all(&state_path);
 
