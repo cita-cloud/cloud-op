@@ -21,6 +21,8 @@ use executor_evm::{
         H256,
     },
 };
+use fs_extra::{copy_items, dir};
+use std::fs::remove_dir_all;
 use std::path::Path;
 
 pub fn executor_recover(config_path: &Path, height: u64) {
@@ -81,4 +83,16 @@ fn chain_db_recover(chain_path: &str, height: u64) {
             rlp::encode(&dst_hash).to_vec(),
         )
         .unwrap();
+}
+
+pub fn move_state(config_path: &Path, backup_path: &Path, height: u64) {
+    let snap_path = backup_path.join(height.to_string());
+    let executor_config = ExecutorConfig::new(config_path.to_str().unwrap());
+    let state_path = executor_config.db_path.clone() + "/statedb";
+
+    let _ = remove_dir_all(&state_path);
+
+    let mut copy_option = dir::CopyOptions::new();
+    copy_option.copy_inside = true;
+    copy_items(&[snap_path], state_path, &copy_option).unwrap();
 }

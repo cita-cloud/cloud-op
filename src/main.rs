@@ -17,7 +17,8 @@ compile_error!("features `crypto_sm` and `crypto_eth` are mutually exclusive");
 #[cfg(all(feature = "raft", feature = "bft"))]
 compile_error!("features `raft` and `bft` are mutually exclusive");
 
-use crate::recover::recover;
+use crate::backup::state_backup;
+use crate::recover::{recover, state_recover};
 use clap::{Parser, Subcommand};
 use std::env::{current_dir, set_current_dir};
 use std::path::PathBuf;
@@ -34,18 +35,55 @@ struct Cli {
 enum Commands {
     /// hot backup executor_evm & chain db, ONLY USE IN EVM MODE
     #[clap(arg_required_else_help = true)]
-    Backup {
+    StateBackup {
         /// chain config path
         #[clap(
             required = true,
             parse(from_os_str),
             short,
+            long,
             default_value = "config.toml"
         )]
         config_path: PathBuf,
         /// node root path
-        #[clap(required = true, parse(from_os_str), short)]
+        #[clap(required = true, parse(from_os_str), short, long, default_value = ".")]
         node_root: PathBuf,
+        #[clap(
+            required = true,
+            parse(from_os_str),
+            short,
+            long,
+            default_value = "backup"
+        )]
+        backup_path: PathBuf,
+        #[clap(required = true)]
+        height: u64,
+    },
+    /// recover chain from early state, ONLY USE IN EVM MODE
+    #[clap(arg_required_else_help = true)]
+    StateRecover {
+        /// chain config path
+        #[clap(
+            required = true,
+            parse(from_os_str),
+            short,
+            long,
+            default_value = "config.toml"
+        )]
+        config_path: PathBuf,
+        /// node root path
+        #[clap(required = true, parse(from_os_str), short, long, default_value = ".")]
+        node_root: PathBuf,
+        #[clap(
+            required = true,
+            parse(from_os_str),
+            short,
+            long,
+            default_value = "backup"
+        )]
+        backup_path: PathBuf,
+        #[clap(required = true)]
+        height: u64,
     },
     /// recover chain status to specified height, ONLY USE IN EVM MODE
     #[clap(arg_required_else_help = true)]
@@ -55,11 +93,12 @@ enum Commands {
             required = true,
             parse(from_os_str),
             short,
+            long,
             default_value = "config.toml"
         )]
         config_path: PathBuf,
         /// node root path
-        #[clap(required = true, parse(from_os_str), short, default_value = ".")]
+        #[clap(required = true, parse(from_os_str), short, long, default_value = ".")]
         node_root: PathBuf,
         /// the specified height that you want to recover to
         #[clap(required = true)]
@@ -71,14 +110,37 @@ fn main() {
     let cli = Cli::parse();
 
     match cli.command {
-        Commands::Backup {
-            config_path: mut _config_path,
+        Commands::StateBackup {
+            mut config_path,
             node_root,
+            mut backup_path,
+            height,
         } => {
-            if !_config_path.is_absolute() {
-                _config_path = current_dir().unwrap().join(_config_path);
+            if !config_path.is_absolute() {
+                config_path = current_dir().unwrap().join(config_path);
+            }
+            if !backup_path.is_absolute() {
+                backup_path = current_dir().unwrap().join(backup_path);
             }
             assert!(set_current_dir(&node_root).is_ok());
+
+            state_backup(config_path, backup_path, height);
+        }
+        Commands::StateRecover {
+            mut config_path,
+            node_root,
+            mut backup_path,
+            height,
+        } => {
+            if !config_path.is_absolute() {
+                config_path = current_dir().unwrap().join(config_path);
+            }
+            if !backup_path.is_absolute() {
+                backup_path = current_dir().unwrap().join(backup_path);
+            }
+            assert!(set_current_dir(&node_root).is_ok());
+
+            state_recover(config_path, backup_path, height);
         }
         Commands::Recover {
             mut config_path,

@@ -12,10 +12,11 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-use crate::recover::chain::chain_recover;
-use crate::recover::executor::executor_recover;
-use crate::recover::utxo::utxo_recover;
 use std::path::PathBuf;
+
+use crate::recover::chain::chain_recover;
+use crate::recover::executor::{executor_recover, move_state};
+use crate::recover::utxo::utxo_recover;
 
 pub fn recover(config_path: PathBuf, height: u64) {
     // recover chain db
@@ -24,7 +25,15 @@ pub fn recover(config_path: PathBuf, height: u64) {
     executor_recover(&config_path, height);
     // recover utxo
     utxo_recover(&config_path, height);
-    // recover executor
+}
+
+pub fn state_recover(config_path: PathBuf, backup_path: PathBuf, height: u64) {
+    // recover chain db
+    chain_recover(&config_path, height);
+    // recover executor from specify state
+    move_state(&config_path, &backup_path, height);
+    // recover utxo
+    utxo_recover(&config_path, height);
 }
 
 mod chain;
