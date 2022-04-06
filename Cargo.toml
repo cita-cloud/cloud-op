@@ -13,11 +13,15 @@ prost = "0.8.0"
 rand = "0.8.0"
 hex = "0.4.0"
 cita-database = "0.1.0"
+cita-vm = "0.2"
+cita-types = "0.1.0"
+cita_trie = "3.0"
 rlp = "0.5"
 bincode = "0.8.0"
 bloomchain = "0.2"
 # slog unable to compile because the latest version: 0.4.16 modifies the interface, todo delete
 log = "=0.4.14"
+fs_extra = "1.2.0"
 
 # crypto_sm
 libsm = { version = "0.4.0", optional = true }
@@ -38,7 +42,6 @@ status_code = { package = "cloud-code", git = "https://github.com/cita-cloud/sta
 
 [features]
 default = ["crypto_sm", "rocksdb", "bft"]
-
 
 crypto_sm = ["libsm"]
 crypto_eth = ["tiny-keccak"]

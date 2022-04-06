@@ -12,7 +12,12 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-use std::path::Path;
+use std::path::PathBuf;
 
-#[allow(dead_code)]
-pub fn backup(_chain_db: &Path) {}
+use crate::backup::state::state_backup_inner;
+
+pub fn state_backup(config_path: PathBuf, backup_path: PathBuf, height: u64) {
+    state_backup_inner(config_path, backup_path, height);
+}
+
+mod state;
