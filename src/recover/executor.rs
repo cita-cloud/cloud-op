@@ -22,7 +22,7 @@ use executor_evm::{
     },
 };
 use fs_extra::{copy_items, dir};
-use std::fs::remove_dir_all;
+use std::fs::{read_dir, remove_dir_all};
 use std::path::Path;
 
 pub fn executor_recover(config_path: &Path, height: u64) {
@@ -87,6 +87,7 @@ fn chain_db_recover(chain_path: &str, height: u64) {
 
 pub fn move_state(config_path: &Path, backup_path: &Path, height: u64) {
     let snap_path = backup_path.join(height.to_string());
+    read_dir(&snap_path).unwrap();
     let executor_config = ExecutorConfig::new(config_path.to_str().unwrap());
     let state_path = executor_config.db_path + "/statedb";
 
