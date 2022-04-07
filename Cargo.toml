@@ -1,6 +1,6 @@
 [package]
 name = "cloud-op"
-version = "0.1.1"
+version = "0.2.0"
 authors = ["Yieazy <yuitta@163.com>"]
 license = "Apache-2.0"
 edition = "2021"
