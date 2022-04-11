@@ -12,24 +12,32 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+use crate::consensus::ConsensusType;
+use crate::crypto::CryptoType;
 use std::path::PathBuf;
 
 use crate::recover::chain::chain_recover;
 use crate::recover::executor::{executor_recover, move_state};
 use crate::recover::utxo::utxo_recover;
 
-pub fn recover(config_path: PathBuf, height: u64) {
+pub fn recover(config_path: PathBuf, height: u64, consensus: ConsensusType, _crypto: CryptoType) {
     // recover chain db
-    chain_recover(&config_path, height);
+    chain_recover(&config_path, height, consensus);
     // recover executor
     executor_recover(&config_path, height);
     // recover utxo
     utxo_recover(&config_path, height);
 }
 
-pub fn state_recover(config_path: PathBuf, backup_path: PathBuf, height: u64) {
+pub fn state_recover(
+    config_path: PathBuf,
+    backup_path: PathBuf,
+    height: u64,
+    consensus: ConsensusType,
+    _crypto: CryptoType,
+) {
     // recover chain db
-    chain_recover(&config_path, height);
+    chain_recover(&config_path, height, consensus);
     // recover executor from specify state
     move_state(&config_path, &backup_path, height);
     // recover utxo

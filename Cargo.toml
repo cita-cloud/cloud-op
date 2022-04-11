@@ -24,14 +24,14 @@ log = "=0.4.14"
 fs_extra = "1.2.0"
 
 # crypto_sm
-libsm = { version = "0.4.0", optional = true }
+libsm = { version = "0.4.0" }
 # crypto_eth
-tiny-keccak = { version = "2.0.0", features = ["keccak"], optional = true }
+tiny-keccak = { version = "2.0.0", features = ["keccak"] }
 # storage
-storage_rocksdb = { git = "https://github.com/cita-cloud/storage_rocksdb", branch = "main", package = "storage", optional = true }
+storage_rocksdb = { git = "https://github.com/cita-cloud/storage_rocksdb", branch = "main", package = "storage" }
 # consensus
-consensus_bft = { git = "https://github.com/cita-cloud/consensus_bft", package = "consensus", optional = true }
-consensus_raft = { git = "https://github.com/cita-cloud/consensus_raft", package = "consensus", optional = true }
+consensus_bft = { git = "https://github.com/cita-cloud/consensus_bft", package = "consensus" }
+consensus_raft = { git = "https://github.com/cita-cloud/consensus_raft", package = "consensus" }
 
 controller = { git = "https://github.com/cita-cloud/controller" }
 executor_evm = { git = "https://github.com/cita-cloud/executor_evm", package = "executor" }
@@ -39,12 +39,3 @@ executor_evm = { git = "https://github.com/cita-cloud/executor_evm", package = "
 cloud-util = { git = "https://github.com/cita-cloud/cloud-util" }
 cita_cloud_proto = { git = "https://github.com/cita-cloud/cita_cloud_proto" }
 status_code = { package = "cloud-code", git = "https://github.com/cita-cloud/status_code" }
-
-[features]
-default = ["crypto_sm", "rocksdb", "bft"]
-
-crypto_sm = ["libsm"]
-crypto_eth = ["tiny-keccak"]
-rocksdb = ["storage_rocksdb"]
-bft = ["consensus_bft"]
-raft = ["consensus_raft"]

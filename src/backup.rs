@@ -15,9 +15,17 @@
 use std::path::PathBuf;
 
 use crate::backup::state::state_backup_inner;
+use crate::consensus::ConsensusType;
+use crate::crypto::CryptoType;
 
-pub fn state_backup(config_path: PathBuf, backup_path: PathBuf, height: u64) {
-    state_backup_inner(config_path, backup_path, height);
+pub fn state_backup(
+    config_path: PathBuf,
+    backup_path: PathBuf,
+    height: u64,
+    consensus: ConsensusType,
+    crypto: CryptoType,
+) {
+    state_backup_inner(config_path, backup_path, height, consensus, crypto);
 }
 
 mod state;

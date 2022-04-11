@@ -15,6 +15,8 @@
 use std::path::PathBuf;
 use std::sync::Arc;
 
+use crate::consensus::ConsensusType;
+use crate::crypto::CryptoType;
 use cita_database::{Config, DataCategory, Database, RocksDB, NUM_COLUMNS};
 use cita_trie::{PatriciaTrie, Trie, DB};
 use cita_types::{Address, H256};
@@ -26,7 +28,13 @@ use executor_evm::types::db_indexes::{BlockNumber2Hash, CurrentHash, DbIndex, Ha
 use executor_evm::types::header::Header;
 use rlp::decode;
 
-pub fn state_backup_inner(config_path: PathBuf, backup_path: PathBuf, height: u64) {
+pub fn state_backup_inner(
+    config_path: PathBuf,
+    backup_path: PathBuf,
+    height: u64,
+    _consensus: ConsensusType,
+    _crypto: CryptoType,
+) {
     if let Err(e) = std::fs::create_dir_all(&backup_path) {
         println!(" backup dir create err {:?}", e);
         return;

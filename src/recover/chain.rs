@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-use crate::consensus::ConsensusConfig;
+use crate::consensus::{BftConsensusConfig, ConsensusType, RaftConsensusConfig};
 use crate::storage::{StorageConfig, DB};
 use cita_cloud_proto::blockchain::CompactBlock;
 use controller::config::ControllerConfig;
@@ -20,7 +20,7 @@ use prost::Message;
 use std::fs::remove_dir_all;
 use std::path::Path;
 
-pub fn chain_recover(config_path: &Path, height: u64) {
+pub fn chain_recover(config_path: &Path, height: u64, consensus: ConsensusType) {
     let storage_config = StorageConfig::new(config_path.to_str().unwrap());
     let db = DB::new(&storage_config.db_path, &storage_config);
 
@@ -41,8 +41,16 @@ pub fn chain_recover(config_path: &Path, height: u64) {
     let _ = remove_dir_all(&controller_config.wal_path);
 
     // remove consensus wal file
-    let consensus_config = ConsensusConfig::new(config_path.to_str().unwrap());
-    let _ = remove_dir_all(&consensus_config.wal_path);
+    match consensus {
+        ConsensusType::Bft => {
+            let consensus_config = BftConsensusConfig::new(config_path.to_str().unwrap());
+            let _ = remove_dir_all(&consensus_config.wal_path);
+        }
+        ConsensusType::Raft => {
+            let consensus_config = RaftConsensusConfig::new(config_path.to_str().unwrap());
+            let _ = remove_dir_all(&consensus_config.wal_path);
+        }
+    }
 
     let height_bytes = (height + 1).to_be_bytes().to_vec();
     let compact_block_bytes = db.load(10, height_bytes).unwrap();
