@@ -12,10 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#[cfg(all(feature = "crypto_sm", feature = "crypto_eth"))]
-compile_error!("features `crypto_sm` and `crypto_eth` are mutually exclusive");
-#[cfg(all(feature = "raft", feature = "bft"))]
-compile_error!("features `raft` and `bft` are mutually exclusive");
+extern crate core;
 
 use crate::backup::state_backup;
 use crate::recover::{recover, state_recover};
@@ -48,16 +45,23 @@ enum Commands {
         /// node root path
         #[clap(required = true, parse(from_os_str), short, long, default_value = ".")]
         node_root: PathBuf,
+        /// backup path dir
         #[clap(
             required = true,
             parse(from_os_str),
             short,
             long,
-            default_value = "backup"
+            default_value = "backup/state"
         )]
         backup_path: PathBuf,
         #[clap(required = true)]
         height: u64,
+        /// choice crypto server, sm or eth
+        #[clap(required = true, long, default_value = "sm")]
+        crypto: String,
+        /// choice consensus server, bft or raft
+        #[clap(required = true, long, default_value = "bft")]
+        consensus: String,
     },
     /// recover chain from early state, ONLY USE IN EVM MODE
     #[clap(arg_required_else_help = true)]
@@ -74,16 +78,23 @@ enum Commands {
         /// node root path
         #[clap(required = true, parse(from_os_str), short, long, default_value = ".")]
         node_root: PathBuf,
+        /// backup path dir
         #[clap(
             required = true,
             parse(from_os_str),
             short,
             long,
-            default_value = "backup"
+            default_value = "backup/state"
         )]
         backup_path: PathBuf,
         #[clap(required = true)]
         height: u64,
+        /// choice crypto server, sm or eth
+        #[clap(required = true, long, default_value = "sm")]
+        crypto: String,
+        /// choice consensus server, bft or raft
+        #[clap(required = true, long, default_value = "bft")]
+        consensus: String,
     },
     /// recover chain status to specified height, ONLY USE IN EVM MODE
     #[clap(arg_required_else_help = true)]
@@ -103,6 +114,12 @@ enum Commands {
         /// the specified height that you want to recover to
         #[clap(required = true)]
         height: u64,
+        /// choice crypto server, sm or eth
+        #[clap(required = true, long, default_value = "sm")]
+        crypto: String,
+        /// choice consensus server, bft or raft
+        #[clap(required = true, long, default_value = "bft")]
+        consensus: String,
     },
 }
 
@@ -115,6 +132,8 @@ fn main() {
             node_root,
             mut backup_path,
             height,
+            crypto,
+            consensus,
         } => {
             if !config_path.is_absolute() {
                 config_path = current_dir().unwrap().join(config_path);
@@ -124,13 +143,21 @@ fn main() {
             }
             assert!(set_current_dir(&node_root).is_ok());
 
-            state_backup(config_path, backup_path, height);
+            state_backup(
+                config_path,
+                backup_path,
+                height,
+                consensus.as_str().into(),
+                crypto.as_str().into(),
+            );
         }
         Commands::StateRecover {
             mut config_path,
             node_root,
             mut backup_path,
             height,
+            crypto,
+            consensus,
         } => {
             if !config_path.is_absolute() {
                 config_path = current_dir().unwrap().join(config_path);
@@ -140,19 +167,32 @@ fn main() {
             }
             assert!(set_current_dir(&node_root).is_ok());
 
-            state_recover(config_path, backup_path, height);
+            state_recover(
+                config_path,
+                backup_path,
+                height,
+                consensus.as_str().into(),
+                crypto.as_str().into(),
+            );
         }
         Commands::Recover {
             mut config_path,
             node_root,
             height,
+            crypto,
+            consensus,
         } => {
             if !config_path.is_absolute() {
                 config_path = current_dir().unwrap().join(config_path);
             }
             assert!(set_current_dir(&node_root).is_ok());
 
-            recover(config_path, height);
+            recover(
+                config_path,
+                height,
+                consensus.as_str().into(),
+                crypto.as_str().into(),
+            );
         }
     }
 }

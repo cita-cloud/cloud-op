@@ -12,7 +12,24 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#[cfg(feature = "bft")]
-pub use consensus_bft::config::BftConfig as ConsensusConfig;
-#[cfg(feature = "raft")]
-pub use consensus_raft::config::ConsensusServiceConfig as ConsensusConfig;
+pub use consensus_bft::config::BftConfig as BftConsensusConfig;
+pub use consensus_raft::config::ConsensusServiceConfig as RaftConsensusConfig;
+
+pub enum ConsensusType {
+    Bft,
+    Raft,
+}
+
+impl From<&str> for ConsensusType {
+    fn from(str: &str) -> Self {
+        match str {
+            "bft" => ConsensusType::Bft,
+            "Bft" => ConsensusType::Bft,
+            "BFT" => ConsensusType::Bft,
+            "raft" => ConsensusType::Raft,
+            "Raft" => ConsensusType::Raft,
+            "RAFT" => ConsensusType::Raft,
+            _ => panic!("consensus type only bft or raft"),
+        }
+    }
+}

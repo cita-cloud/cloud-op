@@ -12,12 +12,24 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#[cfg(feature = "crypto_sm")]
-mod sm;
-#[cfg(feature = "crypto_sm")]
-pub use sm::{hash_data, pk2address};
-
-#[cfg(feature = "crypto_eth")]
 mod eth;
-#[cfg(feature = "crypto_eth")]
-pub use eth::{hash_data, pk2address};
+mod sm;
+
+pub enum CryptoType {
+    Sm,
+    Eth,
+}
+
+impl From<&str> for CryptoType {
+    fn from(str: &str) -> Self {
+        match str {
+            "sm" => CryptoType::Sm,
+            "Sm" => CryptoType::Sm,
+            "SM" => CryptoType::Sm,
+            "eth" => CryptoType::Eth,
+            "Eth" => CryptoType::Eth,
+            "ETH" => CryptoType::Eth,
+            _ => panic!("crypto type only sm or eth"),
+        }
+    }
+}
