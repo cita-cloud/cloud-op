@@ -45,12 +45,13 @@ enum Commands {
         /// node root path
         #[clap(required = true, parse(from_os_str), short, long, default_value = ".")]
         node_root: PathBuf,
+        /// backup path dir
         #[clap(
             required = true,
             parse(from_os_str),
             short,
             long,
-            default_value = "backup"
+            default_value = "backup/state"
         )]
         backup_path: PathBuf,
         #[clap(required = true)]
@@ -77,12 +78,13 @@ enum Commands {
         /// node root path
         #[clap(required = true, parse(from_os_str), short, long, default_value = ".")]
         node_root: PathBuf,
+        /// backup path dir
         #[clap(
             required = true,
             parse(from_os_str),
             short,
             long,
-            default_value = "backup"
+            default_value = "backup/state"
         )]
         backup_path: PathBuf,
         #[clap(required = true)]
