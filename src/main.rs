@@ -34,23 +34,13 @@ enum Commands {
     #[clap(arg_required_else_help = true)]
     StateBackup {
         /// chain config path
-        #[clap(
-            parse(from_os_str),
-            short,
-            long,
-            default_value = "config.toml"
-        )]
+        #[clap(parse(from_os_str), short, long, default_value = "config.toml")]
         config_path: PathBuf,
         /// node root path
         #[clap(parse(from_os_str), short, long, default_value = ".")]
         node_root: PathBuf,
         /// backup path dir
-        #[clap(
-            parse(from_os_str),
-            short,
-            long,
-            default_value = "backup/state"
-        )]
+        #[clap(parse(from_os_str), short, long, default_value = "backup/state")]
         backup_path: PathBuf,
         #[clap(required = true)]
         height: u64,
@@ -65,23 +55,13 @@ enum Commands {
     #[clap(arg_required_else_help = true)]
     StateRecover {
         /// chain config path
-        #[clap(
-            parse(from_os_str),
-            short,
-            long,
-            default_value = "config.toml"
-        )]
+        #[clap(parse(from_os_str), short, long, default_value = "config.toml")]
         config_path: PathBuf,
         /// node root path
         #[clap(parse(from_os_str), short, long, default_value = ".")]
         node_root: PathBuf,
         /// backup path dir
-        #[clap(
-            parse(from_os_str),
-            short,
-            long,
-            default_value = "backup/state"
-        )]
+        #[clap(parse(from_os_str), short, long, default_value = "backup/state")]
         backup_path: PathBuf,
         #[clap(required = true)]
         height: u64,
@@ -96,12 +76,7 @@ enum Commands {
     #[clap(arg_required_else_help = true)]
     Recover {
         /// chain config path
-        #[clap(
-            parse(from_os_str),
-            short,
-            long,
-            default_value = "config.toml"
-        )]
+        #[clap(parse(from_os_str), short, long, default_value = "config.toml")]
         config_path: PathBuf,
         /// node root path
         #[clap(parse(from_os_str), short, long, default_value = ".")]
@@ -193,7 +168,7 @@ fn main() {
 }
 
 mod backup;
+mod config;
 mod crypto;
 mod recover;
 mod storage;
-mod config;

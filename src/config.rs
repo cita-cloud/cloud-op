@@ -115,4 +115,3 @@ impl ExecutorConfig {
         read_toml(config_str, "executor_evm")
     }
 }
-
