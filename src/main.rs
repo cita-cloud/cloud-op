@@ -198,7 +198,7 @@ fn main() {
 }
 
 mod backup;
-mod consensus;
 mod crypto;
 mod recover;
 mod storage;
+mod config;

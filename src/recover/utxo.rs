@@ -15,7 +15,7 @@
 use crate::storage::{StorageConfig, DB};
 use cita_cloud_proto::blockchain::raw_transaction::Tx::UtxoTx;
 use cita_cloud_proto::blockchain::RawTransaction;
-use controller::config::ControllerConfig;
+use crate::config::ControllerConfig;
 use prost::Message;
 use std::path::Path;
 

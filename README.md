@@ -6,7 +6,7 @@ cita-cloud 的运维工具提供：消块功能以及备份功能。
 
 ```shell
 $ cloud-op --help
-cloud-op 0.2.1
+cloud-op 0.2.2
 Yieazy <yuitta@163.com>
 Simple program to greet a person
 
@@ -26,7 +26,7 @@ SUBCOMMANDS:
 
 ## cita-cloud version
 
-cita-cloud version choice: v6.3.4+
+cita-cloud version choice: v6.5.0
 
 ## 部署
 
