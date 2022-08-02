@@ -15,14 +15,14 @@
 use std::path::PathBuf;
 use std::sync::Arc;
 
-use crate::consensus::ConsensusType;
+use crate::config::ConsensusType;
+use crate::config::ExecutorConfig;
 use crate::crypto::CryptoType;
 use cita_database::{Config, DataCategory, Database, RocksDB, NUM_COLUMNS};
 use cita_trie::{PatriciaTrie, Trie, DB};
 use cita_types::{Address, H256};
 use cita_vm::common;
 use cita_vm::state::{AccountDB, StateObject};
-use executor_evm::config::ExecutorConfig;
 use executor_evm::trie_db::{NodeType, TrieDb};
 use executor_evm::types::db_indexes::{BlockNumber2Hash, CurrentHash, DbIndex, Hash2Header};
 use executor_evm::types::header::Header;

@@ -34,91 +34,61 @@ enum Commands {
     #[clap(arg_required_else_help = true)]
     StateBackup {
         /// chain config path
-        #[clap(
-            required = true,
-            parse(from_os_str),
-            short,
-            long,
-            default_value = "config.toml"
-        )]
+        #[clap(parse(from_os_str), short, long, default_value = "config.toml")]
         config_path: PathBuf,
         /// node root path
-        #[clap(required = true, parse(from_os_str), short, long, default_value = ".")]
+        #[clap(parse(from_os_str), short, long, default_value = ".")]
         node_root: PathBuf,
         /// backup path dir
-        #[clap(
-            required = true,
-            parse(from_os_str),
-            short,
-            long,
-            default_value = "backup/state"
-        )]
+        #[clap(parse(from_os_str), short, long, default_value = "backup/state")]
         backup_path: PathBuf,
         #[clap(required = true)]
         height: u64,
         /// choice crypto server, sm or eth
-        #[clap(required = true, long, default_value = "sm")]
+        #[clap(long, default_value = "sm")]
         crypto: String,
         /// choice consensus server, bft or raft
-        #[clap(required = true, long, default_value = "bft")]
+        #[clap(long, default_value = "bft")]
         consensus: String,
     },
     /// recover chain from early state, ONLY USE IN EVM MODE
     #[clap(arg_required_else_help = true)]
     StateRecover {
         /// chain config path
-        #[clap(
-            required = true,
-            parse(from_os_str),
-            short,
-            long,
-            default_value = "config.toml"
-        )]
+        #[clap(parse(from_os_str), short, long, default_value = "config.toml")]
         config_path: PathBuf,
         /// node root path
-        #[clap(required = true, parse(from_os_str), short, long, default_value = ".")]
+        #[clap(parse(from_os_str), short, long, default_value = ".")]
         node_root: PathBuf,
         /// backup path dir
-        #[clap(
-            required = true,
-            parse(from_os_str),
-            short,
-            long,
-            default_value = "backup/state"
-        )]
+        #[clap(parse(from_os_str), short, long, default_value = "backup/state")]
         backup_path: PathBuf,
         #[clap(required = true)]
         height: u64,
         /// choice crypto server, sm or eth
-        #[clap(required = true, long, default_value = "sm")]
+        #[clap(long, default_value = "sm")]
         crypto: String,
         /// choice consensus server, bft or raft
-        #[clap(required = true, long, default_value = "bft")]
+        #[clap(long, default_value = "bft")]
         consensus: String,
     },
     /// recover chain status to specified height, ONLY USE IN EVM MODE
     #[clap(arg_required_else_help = true)]
     Recover {
         /// chain config path
-        #[clap(
-            required = true,
-            parse(from_os_str),
-            short,
-            long,
-            default_value = "config.toml"
-        )]
+        #[clap(parse(from_os_str), short, long, default_value = "config.toml")]
         config_path: PathBuf,
         /// node root path
-        #[clap(required = true, parse(from_os_str), short, long, default_value = ".")]
+        #[clap(parse(from_os_str), short, long, default_value = ".")]
         node_root: PathBuf,
         /// the specified height that you want to recover to
         #[clap(required = true)]
         height: u64,
         /// choice crypto server, sm or eth
-        #[clap(required = true, long, default_value = "sm")]
+        #[clap(long, default_value = "sm")]
         crypto: String,
         /// choice consensus server, bft or raft
-        #[clap(required = true, long, default_value = "bft")]
+        #[clap(long, default_value = "bft")]
         consensus: String,
     },
 }
@@ -198,7 +168,7 @@ fn main() {
 }
 
 mod backup;
-mod consensus;
+mod config;
 mod crypto;
 mod recover;
 mod storage;

@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-use crate::consensus::ConsensusType;
+use crate::config::ConsensusType;
 use crate::crypto::CryptoType;
 use std::path::PathBuf;
 

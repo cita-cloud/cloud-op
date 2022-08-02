@@ -15,7 +15,7 @@
 use std::path::PathBuf;
 
 use crate::backup::state::state_backup_inner;
-use crate::consensus::ConsensusType;
+use crate::config::ConsensusType;
 use crate::crypto::CryptoType;
 
 pub fn state_backup(

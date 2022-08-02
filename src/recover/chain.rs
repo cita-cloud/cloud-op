@@ -12,10 +12,10 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-use crate::consensus::{BftConsensusConfig, ConsensusType, RaftConsensusConfig};
+use crate::config::ControllerConfig;
+use crate::config::{BftConsensusConfig, ConsensusType, RaftConsensusConfig};
 use crate::storage::{StorageConfig, DB};
 use cita_cloud_proto::blockchain::CompactBlock;
-use controller::config::ControllerConfig;
 use prost::Message;
 use std::fs::remove_dir_all;
 use std::path::Path;

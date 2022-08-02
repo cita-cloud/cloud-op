@@ -12,10 +12,10 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+use crate::config::ControllerConfig;
 use crate::storage::{StorageConfig, DB};
 use cita_cloud_proto::blockchain::raw_transaction::Tx::UtxoTx;
 use cita_cloud_proto::blockchain::RawTransaction;
-use controller::config::ControllerConfig;
 use prost::Message;
 use std::path::Path;
 
