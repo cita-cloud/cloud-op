@@ -1,4 +1,4 @@
-FROM rust:slim-buster AS buildstage
+FROM rust:1.62-slim-bullseye AS buildstage
 WORKDIR /build
 RUN /bin/sh -c set -eux;\
     rustup component add rustfmt;\
