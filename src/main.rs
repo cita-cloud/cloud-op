@@ -47,7 +47,7 @@ enum Commands {
         /// choice crypto server, sm or eth
         #[clap(long, default_value = "sm")]
         crypto: String,
-        /// choice consensus server, bft or raft
+        /// choice consensus server, bft, raft or overlord
         #[clap(long, default_value = "bft")]
         consensus: String,
     },
@@ -68,7 +68,7 @@ enum Commands {
         /// choice crypto server, sm or eth
         #[clap(long, default_value = "sm")]
         crypto: String,
-        /// choice consensus server, bft or raft
+        /// choice consensus server, bft, raft or overlord
         #[clap(long, default_value = "bft")]
         consensus: String,
     },
@@ -87,7 +87,7 @@ enum Commands {
         /// choice crypto server, sm or eth
         #[clap(long, default_value = "sm")]
         crypto: String,
-        /// choice consensus server, bft or raft
+        /// choice consensus server, bft, raft or overlord
         #[clap(long, default_value = "bft")]
         consensus: String,
     },

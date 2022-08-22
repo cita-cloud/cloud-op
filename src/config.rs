@@ -44,7 +44,7 @@ pub struct RaftConsensusConfig {
 impl Default for RaftConsensusConfig {
     fn default() -> Self {
         Self {
-            wal_path: "./data/wal".to_string(),
+            wal_path: "./raft-data-dir".to_string(),
         }
     }
 }
@@ -55,9 +55,30 @@ impl RaftConsensusConfig {
     }
 }
 
+#[derive(Debug, Deserialize, Clone)]
+#[serde(default)]
+pub struct OverlordConsensusConfig {
+    pub wal_path: String,
+}
+
+impl Default for OverlordConsensusConfig {
+    fn default() -> Self {
+        Self {
+            wal_path: "./overlord_wal".to_string(),
+        }
+    }
+}
+
+impl OverlordConsensusConfig {
+    pub fn new(config_str: &str) -> Self {
+        read_toml(config_str, "consensus_overlord")
+    }
+}
+
 pub enum ConsensusType {
     Bft,
     Raft,
+    Overlord,
 }
 
 impl From<&str> for ConsensusType {
@@ -69,7 +90,11 @@ impl From<&str> for ConsensusType {
             "raft" => ConsensusType::Raft,
             "Raft" => ConsensusType::Raft,
             "RAFT" => ConsensusType::Raft,
-            _ => panic!("consensus type only bft or raft"),
+            "overlord" => ConsensusType::Overlord,
+            "Overlord" => ConsensusType::Overlord,
+            "OVERLORD" => ConsensusType::Overlord,
+            "OverLord" => ConsensusType::Overlord,
+            _ => panic!("consensus type only bft, raft or overlord"),
         }
     }
 }

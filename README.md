@@ -6,7 +6,7 @@ cita-cloud 的运维工具提供：消块功能以及备份功能。
 
 ```shell
 $ cloud-op --help
-cloud-op 0.2.2
+cloud-op 0.2.3
 Yieazy <yuitta@163.com>
 Simple program to greet a person
 
@@ -26,7 +26,7 @@ SUBCOMMANDS:
 
 ## cita-cloud version
 
-cita-cloud version choice: v6.5.0
+cita-cloud version choice: v6.6.0
 
 ## 部署
 
@@ -72,7 +72,7 @@ ARGS:
 
 OPTIONS:
     -c, --config-path <CONFIG_PATH>    chain config path [default: config.toml]
-        --consensus <CONSENSUS>        choice consensus server, bft or raft [default: bft]
+        --consensus <CONSENSUS>        choice consensus server, bft, raft or overlord [default: bft]
         --crypto <CRYPTO>              choice crypto server, sm or eth [default: sm]
     -h, --help                         Print help information
     -n, --node-root <NODE_ROOT>        node root path [default: .]
