@@ -12,8 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-use crate::config::ControllerConfig;
 use crate::config::{BftConsensusConfig, ConsensusType, RaftConsensusConfig};
+use crate::config::{ControllerConfig, OverlordConsensusConfig};
 use crate::storage::{StorageConfig, DB};
 use cita_cloud_proto::blockchain::CompactBlock;
 use prost::Message;
@@ -48,6 +48,10 @@ pub fn chain_recover(config_path: &Path, height: u64, consensus: ConsensusType) 
         }
         ConsensusType::Raft => {
             let consensus_config = RaftConsensusConfig::new(config_path.to_str().unwrap());
+            let _ = remove_dir_all(&consensus_config.wal_path);
+        }
+        ConsensusType::Overlord => {
+            let consensus_config = OverlordConsensusConfig::new(config_path.to_str().unwrap());
             let _ = remove_dir_all(&consensus_config.wal_path);
         }
     }
