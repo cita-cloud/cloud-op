@@ -9,5 +9,7 @@ RUN /bin/sh -c set -eux;\
 COPY . /build/
 RUN cargo build --release
 FROM debian:bullseye-slim
+RUN useradd -m chain
+USER chain
 COPY --from=buildstage /build/target/release/cloud-op /usr/bin/
 CMD ["controller"]
