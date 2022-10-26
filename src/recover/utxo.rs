@@ -21,7 +21,7 @@ use std::path::Path;
 
 pub const LOCK_ID_VERSION: u64 = 1_000;
 pub const LOCK_ID_CHAIN_ID: u64 = 1_001;
-pub const LOCK_ID_BUTTON: u64 = 1_007;
+pub const LOCK_ID_BUTTON: u64 = 1_008;
 
 pub fn utxo_recover(config_path: &Path, height: u64) {
     let storage_config = StorageConfig::new(config_path.to_str().unwrap());
