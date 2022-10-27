@@ -20,7 +20,12 @@ use prost::Message;
 use std::fs::remove_dir_all;
 use std::path::Path;
 
-pub fn chain_recover(config_path: &Path, height: u64, consensus: ConsensusType) {
+pub fn chain_recover(
+    config_path: &Path,
+    height: u64,
+    consensus: ConsensusType,
+    clear_consensus_data: bool,
+) {
     let storage_config = StorageConfig::new(config_path.to_str().unwrap());
     let db = DB::new(&storage_config.db_path, &storage_config);
 
@@ -44,15 +49,21 @@ pub fn chain_recover(config_path: &Path, height: u64, consensus: ConsensusType) 
     match consensus {
         ConsensusType::Bft => {
             let consensus_config = BftConsensusConfig::new(config_path.to_str().unwrap());
-            let _ = remove_dir_all(&consensus_config.wal_path);
+            if clear_consensus_data {
+                let _ = remove_dir_all(&consensus_config.wal_path);
+            }
         }
         ConsensusType::Raft => {
             let consensus_config = RaftConsensusConfig::new(config_path.to_str().unwrap());
-            let _ = remove_dir_all(&consensus_config.wal_path);
+            if clear_consensus_data {
+                let _ = remove_dir_all(&consensus_config.wal_path);
+            }
         }
         ConsensusType::Overlord => {
             let consensus_config = OverlordConsensusConfig::new(config_path.to_str().unwrap());
-            let _ = remove_dir_all(&consensus_config.wal_path);
+            if clear_consensus_data {
+                let _ = remove_dir_all(&consensus_config.wal_path);
+            }
         }
     }
 
