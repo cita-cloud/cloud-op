@@ -20,9 +20,15 @@ use crate::recover::chain::chain_recover;
 use crate::recover::executor::{executor_recover, move_state};
 use crate::recover::utxo::utxo_recover;
 
-pub fn recover(config_path: PathBuf, height: u64, consensus: ConsensusType, _crypto: CryptoType) {
+pub fn recover(
+    config_path: PathBuf,
+    height: u64,
+    consensus: ConsensusType,
+    _crypto: CryptoType,
+    clear_consensus_data: bool,
+) {
     // recover chain db
-    chain_recover(&config_path, height, consensus);
+    chain_recover(&config_path, height, consensus, clear_consensus_data);
     // recover executor
     executor_recover(&config_path, height);
     // recover utxo
@@ -37,7 +43,7 @@ pub fn state_recover(
     _crypto: CryptoType,
 ) {
     // recover chain db
-    chain_recover(&config_path, height, consensus);
+    chain_recover(&config_path, height, consensus, true);
     // recover executor from specify state
     move_state(&config_path, &backup_path, height);
     // recover utxo

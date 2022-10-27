@@ -84,12 +84,15 @@ enum Commands {
         /// the specified height that you want to recover to
         #[clap(required = true)]
         height: u64,
-        /// choice crypto server, sm or eth
+        /// choose crypto server, sm or eth
         #[clap(long, default_value = "sm")]
         crypto: String,
-        /// choice consensus server, bft, raft or overlord
+        /// choose consensus server, bft, raft or overlord
         #[clap(long, default_value = "bft")]
         consensus: String,
+        /// whether to clear consensus data
+        #[clap(long = "is-clear")]
+        clear_consensus_data: bool,
     },
 }
 
@@ -151,6 +154,7 @@ fn main() {
             height,
             crypto,
             consensus,
+            clear_consensus_data,
         } => {
             if !config_path.is_absolute() {
                 config_path = current_dir().unwrap().join(config_path);
@@ -162,6 +166,7 @@ fn main() {
                 height,
                 consensus.as_str().into(),
                 crypto.as_str().into(),
+                clear_consensus_data,
             );
         }
     }
