@@ -41,9 +41,10 @@ pub fn state_recover(
     height: u64,
     consensus: ConsensusType,
     _crypto: CryptoType,
+    clear_consensus_data: bool,
 ) {
     // recover chain db
-    chain_recover(&config_path, height, consensus, true);
+    chain_recover(&config_path, height, consensus, clear_consensus_data);
     // recover executor from specify state
     move_state(&config_path, &backup_path, height);
     // recover utxo
