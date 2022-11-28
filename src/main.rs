@@ -143,6 +143,10 @@ fn main() {
                 backup_path = current_dir().unwrap().join(backup_path);
             }
             assert!(set_current_dir(&node_root).is_ok());
+            assert!(node_root
+                .join(backup_path.clone())
+                .join(height.to_string())
+                .exists());
 
             state_recover(
                 config_path,
