@@ -46,22 +46,18 @@ pub fn chain_recover(
     let _ = remove_dir_all(&controller_config.wal_path);
 
     // remove consensus wal file
-    match consensus {
-        ConsensusType::Bft => {
-            let consensus_config = BftConsensusConfig::new(config_path.to_str().unwrap());
-            if clear_consensus_data {
+    if clear_consensus_data {
+        match consensus {
+            ConsensusType::Bft => {
+                let consensus_config = BftConsensusConfig::new(config_path.to_str().unwrap());
                 let _ = remove_dir_all(&consensus_config.wal_path);
             }
-        }
-        ConsensusType::Raft => {
-            let consensus_config = RaftConsensusConfig::new(config_path.to_str().unwrap());
-            if clear_consensus_data {
+            ConsensusType::Raft => {
+                let consensus_config = RaftConsensusConfig::new(config_path.to_str().unwrap());
                 let _ = remove_dir_all(&consensus_config.wal_path);
             }
-        }
-        ConsensusType::Overlord => {
-            let consensus_config = OverlordConsensusConfig::new(config_path.to_str().unwrap());
-            if clear_consensus_data {
+            ConsensusType::Overlord => {
+                let consensus_config = OverlordConsensusConfig::new(config_path.to_str().unwrap());
                 let _ = remove_dir_all(&consensus_config.wal_path);
             }
         }
