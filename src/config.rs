@@ -17,26 +17,6 @@ use serde_derive::Deserialize;
 
 #[derive(Debug, Deserialize, Clone)]
 #[serde(default)]
-pub struct BftConsensusConfig {
-    pub wal_path: String,
-}
-
-impl Default for BftConsensusConfig {
-    fn default() -> Self {
-        Self {
-            wal_path: "./data/wal".to_string(),
-        }
-    }
-}
-
-impl BftConsensusConfig {
-    pub fn new(config_str: &str) -> Self {
-        read_toml(config_str, "consensus_bft")
-    }
-}
-
-#[derive(Debug, Deserialize, Clone)]
-#[serde(default)]
 pub struct RaftConsensusConfig {
     pub wal_path: String,
 }
@@ -76,25 +56,16 @@ impl OverlordConsensusConfig {
 }
 
 pub enum ConsensusType {
-    Bft,
     Raft,
     Overlord,
 }
 
 impl From<&str> for ConsensusType {
     fn from(str: &str) -> Self {
-        match str {
-            "bft" => ConsensusType::Bft,
-            "Bft" => ConsensusType::Bft,
-            "BFT" => ConsensusType::Bft,
+        match str.to_lowercase().as_str() {
             "raft" => ConsensusType::Raft,
-            "Raft" => ConsensusType::Raft,
-            "RAFT" => ConsensusType::Raft,
             "overlord" => ConsensusType::Overlord,
-            "Overlord" => ConsensusType::Overlord,
-            "OVERLORD" => ConsensusType::Overlord,
-            "OverLord" => ConsensusType::Overlord,
-            _ => panic!("consensus type only bft, raft or overlord"),
+            _ => panic!("consensus type only raft or overlord"),
         }
     }
 }

@@ -22,13 +22,9 @@ pub enum CryptoType {
 
 impl From<&str> for CryptoType {
     fn from(str: &str) -> Self {
-        match str {
+        match str.to_lowercase().as_str() {
             "sm" => CryptoType::Sm,
-            "Sm" => CryptoType::Sm,
-            "SM" => CryptoType::Sm,
             "eth" => CryptoType::Eth,
-            "Eth" => CryptoType::Eth,
-            "ETH" => CryptoType::Eth,
             _ => panic!("crypto type only sm or eth"),
         }
     }

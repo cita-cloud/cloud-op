@@ -15,7 +15,7 @@
 extern crate core;
 
 use crate::backup::state_backup;
-use crate::recover::{recover, state_recover};
+use crate::recover::{common_storage_recover, recover, state_recover};
 use clap::{Parser, Subcommand};
 use std::env::{current_dir, set_current_dir};
 use std::path::PathBuf;
@@ -47,8 +47,8 @@ enum Commands {
         /// specify crypto server, sm or eth
         #[clap(long, default_value = "sm")]
         crypto: String,
-        /// specify consensus server, bft, raft or overlord
-        #[clap(long, default_value = "bft")]
+        /// specify consensus server, raft or overlord
+        #[clap(long, default_value = "raft")]
         consensus: String,
     },
     /// recover chain from early state, ONLY USE IN EVM MODE
@@ -68,8 +68,8 @@ enum Commands {
         /// specify crypto server, sm or eth
         #[clap(long, default_value = "sm")]
         crypto: String,
-        /// specify consensus server, bft, raft or overlord
-        #[clap(long, default_value = "bft")]
+        /// specify consensus server, raft or overlord
+        #[clap(long, default_value = "raft")]
         consensus: String,
         /// specify whether to clear consensus data
         #[clap(long = "is-clear")]
@@ -90,16 +90,30 @@ enum Commands {
         /// specify crypto server, sm or eth
         #[clap(long, default_value = "sm")]
         crypto: String,
-        /// specify consensus server, bft, raft or overlord
-        #[clap(long, default_value = "bft")]
+        /// specify consensus server, raft or overlord
+        #[clap(long, default_value = "raft")]
         consensus: String,
         /// specify whether to clear consensus data
         #[clap(long = "is-clear")]
         clear_consensus_data: bool,
     },
+    /// recover common storage status to specified height, ONLY USE IN EVM MODE
+    #[clap(arg_required_else_help = true)]
+    CommonStorageRecover {
+        /// chain config path
+        #[clap(short, long, default_value = "config.toml")]
+        config_path: PathBuf,
+        /// node root path
+        #[clap(short, long, default_value = ".")]
+        node_root: PathBuf,
+        /// the specified height that you want to recover to
+        #[clap(required = true)]
+        height: u64,
+    },
 }
 
-fn main() {
+#[tokio::main]
+async fn main() {
     let cli = Cli::parse();
 
     match cli.command {
@@ -117,7 +131,7 @@ fn main() {
             if !backup_path.is_absolute() {
                 backup_path = current_dir().unwrap().join(backup_path);
             }
-            assert!(set_current_dir(&node_root).is_ok());
+            assert!(set_current_dir(node_root).is_ok());
 
             state_backup(
                 config_path,
@@ -155,7 +169,8 @@ fn main() {
                 consensus.as_str().into(),
                 crypto.as_str().into(),
                 clear_consensus_data,
-            );
+            )
+            .await;
         }
         Commands::Recover {
             mut config_path,
@@ -176,7 +191,20 @@ fn main() {
                 consensus.as_str().into(),
                 crypto.as_str().into(),
                 clear_consensus_data,
-            );
+            )
+            .await;
+        }
+        Commands::CommonStorageRecover {
+            mut config_path,
+            node_root,
+            height,
+        } => {
+            if !config_path.is_absolute() {
+                config_path = current_dir().unwrap().join(config_path);
+            }
+            assert!(set_current_dir(&node_root).is_ok());
+
+            common_storage_recover(&config_path, height).await;
         }
     }
 }

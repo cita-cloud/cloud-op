@@ -12,4 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-pub use storage_rocksdb::{config::StorageConfig, db::DB};
+pub use storage_opendal::{
+    config::{CloudStorage, StorageConfig},
+    storager::Storager,
+};

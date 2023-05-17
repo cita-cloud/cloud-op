@@ -12,30 +12,43 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+use storage_opendal::config::StorageConfig;
+use storage_opendal::storager::Storager;
+
 use crate::config::ConsensusType;
 use crate::crypto::CryptoType;
-use std::path::PathBuf;
-
 use crate::recover::chain::chain_recover;
+pub use crate::recover::common_storage::common_storage_recover;
 use crate::recover::executor::{executor_recover, move_state};
 use crate::recover::utxo::utxo_recover;
+use std::path::PathBuf;
 
-pub fn recover(
+pub async fn recover(
     config_path: PathBuf,
     height: u64,
     consensus: ConsensusType,
     _crypto: CryptoType,
     clear_consensus_data: bool,
 ) {
+    let config = StorageConfig::new(config_path.to_str().unwrap());
+    let db = Storager::build(
+        &config.data_root,
+        &config.cloud_storage,
+        config.l1_capacity,
+        config.l2_capacity,
+        u64::MAX,
+        config.retreat_interval,
+    );
+
     // recover chain db
-    chain_recover(&config_path, height, consensus, clear_consensus_data);
+    chain_recover(&db, &config_path, height, consensus, clear_consensus_data).await;
     // recover executor
     executor_recover(&config_path, height);
     // recover utxo
-    utxo_recover(&config_path, height);
+    utxo_recover(&db, &config_path, height).await;
 }
 
-pub fn state_recover(
+pub async fn state_recover(
     config_path: PathBuf,
     backup_path: PathBuf,
     height: u64,
@@ -43,14 +56,28 @@ pub fn state_recover(
     _crypto: CryptoType,
     clear_consensus_data: bool,
 ) {
+    let config = StorageConfig::new(config_path.to_str().unwrap());
+    let db = Storager::build(
+        &config.data_root,
+        &config.cloud_storage,
+        config.l1_capacity,
+        config.l2_capacity,
+        config.backup_interval,
+        config.retreat_interval,
+    );
     // recover chain db
-    chain_recover(&config_path, height, consensus, clear_consensus_data);
+    chain_recover(&db, &config_path, height, consensus, clear_consensus_data).await;
     // recover executor from specify state
     move_state(&config_path, &backup_path, height);
     // recover utxo
-    utxo_recover(&config_path, height);
+    utxo_recover(&db, &config_path, height).await;
+}
+
+pub fn get_real_key(region: u32, key: &[u8]) -> String {
+    hex::encode([region.to_be_bytes().as_slice(), key].concat())
 }
 
 mod chain;
+mod common_storage;
 mod executor;
 mod utxo;
