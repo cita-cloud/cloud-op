@@ -13,7 +13,9 @@
 // limitations under the License.
 
 use crate::config::ControllerConfig;
-use crate::storage::{StorageConfig, DB};
+use crate::recover::get_real_key;
+use crate::storage::Storager;
+use async_recursion::async_recursion;
 use cita_cloud_proto::blockchain::raw_transaction::Tx::UtxoTx;
 use cita_cloud_proto::blockchain::RawTransaction;
 use prost::Message;
@@ -23,18 +25,19 @@ pub const LOCK_ID_VERSION: u64 = 1_000;
 pub const LOCK_ID_CHAIN_ID: u64 = 1_001;
 pub const LOCK_ID_BUTTON: u64 = 1_008;
 
-pub fn utxo_recover(config_path: &Path, height: u64) {
-    let storage_config = StorageConfig::new(config_path.to_str().unwrap());
-    let db = DB::new(&storage_config.db_path, &storage_config);
+pub async fn utxo_recover(db: &Storager, config_path: &Path, height: u64) {
     let controller_config = ControllerConfig::new(config_path.to_str().unwrap());
 
     for lock_id in LOCK_ID_VERSION..LOCK_ID_BUTTON {
-        match db.load(0, lock_id.to_be_bytes().to_vec()) {
+        match db
+            .load(&get_real_key(0, &lock_id.to_be_bytes()), true)
+            .await
+        {
             Ok(data_or_tx_hash) => {
                 if data_or_tx_hash.len() == controller_config.hash_len as usize
                     && lock_id != LOCK_ID_CHAIN_ID
                 {
-                    handle_utxo_tx(&db, data_or_tx_hash, height, lock_id, false);
+                    handle_utxo_tx(db, data_or_tx_hash, height, lock_id, false).await;
                 } else {
                     println!("lock_id({}) never change from genesis", lock_id);
                 }
@@ -46,14 +49,21 @@ pub fn utxo_recover(config_path: &Path, height: u64) {
     }
 }
 
-pub fn handle_utxo_tx(db: &DB, tx_hash: Vec<u8>, height: u64, lock_id: u64, modify: bool) {
-    let height_bytes = db.load(7, tx_hash.clone()).unwrap();
+#[async_recursion]
+pub async fn handle_utxo_tx(
+    db: &Storager,
+    tx_hash: Vec<u8>,
+    height: u64,
+    lock_id: u64,
+    modify: bool,
+) {
+    let height_bytes = db.load(&get_real_key(7, &tx_hash), true).await.unwrap();
     let mut buf: [u8; 8] = [0; 8];
     buf.clone_from_slice(&height_bytes[..8]);
     let tx_hight = u64::from_be_bytes(buf);
 
     if tx_hight > height {
-        match db.load(1, tx_hash) {
+        match db.load(&get_real_key(1, &tx_hash), true).await {
             Ok(raw_tx_bytes) => {
                 if let UtxoTx(tx) = RawTransaction::decode(raw_tx_bytes.as_slice())
                     .unwrap()
@@ -63,9 +73,15 @@ pub fn handle_utxo_tx(db: &DB, tx_hash: Vec<u8>, height: u64, lock_id: u64, modi
                     let pre_tx_hash = tx.transaction.unwrap().pre_tx_hash;
                     if pre_tx_hash == vec![0u8; 33] {
                         println!("delete lock_id({}) content to be init state", lock_id);
-                        db.delete(0, lock_id.to_be_bytes().to_vec()).unwrap();
+                        db.next_storager
+                            .as_ref()
+                            .unwrap()
+                            .operator
+                            .delete(&get_real_key(0, &lock_id.to_be_bytes()))
+                            .await
+                            .unwrap();
                     } else {
-                        handle_utxo_tx(db, pre_tx_hash, height, lock_id, true);
+                        handle_utxo_tx(db, pre_tx_hash, height, lock_id, true).await;
                     }
                 } else {
                     panic!("lock_id({}) tx is not utxo", lock_id);
@@ -81,7 +97,8 @@ pub fn handle_utxo_tx(db: &DB, tx_hash: Vec<u8>, height: u64, lock_id: u64, modi
             lock_id,
             hex::encode(&tx_hash)
         );
-        db.store(0, lock_id.to_be_bytes().to_vec(), tx_hash)
+        db.store(&get_real_key(0, &lock_id.to_be_bytes()), tx_hash)
+            .await
             .unwrap();
     } else {
         println!("lock_id({}) keep change", lock_id);
