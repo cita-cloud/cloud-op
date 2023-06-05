@@ -16,7 +16,7 @@ use super::get_real_key;
 use crate::storage::{StorageConfig, Storager};
 use std::path::Path;
 
-pub async fn common_storage_recover(config_path: &Path, recover_backup_height: u64) {
+pub async fn cloud_storage_recover(config_path: &Path, recover_backup_height: u64) {
     let config = StorageConfig::new(config_path.to_str().unwrap());
     let db = Storager::build(
         &config.data_root,
@@ -25,7 +25,8 @@ pub async fn common_storage_recover(config_path: &Path, recover_backup_height: u
         config.l2_capacity,
         config.backup_interval,
         config.retreat_interval,
-    );
+    )
+    .await;
 
     let remote = &db
         .next_storager

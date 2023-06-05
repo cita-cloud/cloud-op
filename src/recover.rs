@@ -18,7 +18,7 @@ use storage_opendal::storager::Storager;
 use crate::config::ConsensusType;
 use crate::crypto::CryptoType;
 use crate::recover::chain::chain_recover;
-pub use crate::recover::common_storage::common_storage_recover;
+pub use crate::recover::cloud_storage::cloud_storage_recover;
 use crate::recover::executor::{executor_recover, move_state};
 use crate::recover::utxo::utxo_recover;
 use std::path::PathBuf;
@@ -38,7 +38,8 @@ pub async fn recover(
         config.l2_capacity,
         u64::MAX,
         config.retreat_interval,
-    );
+    )
+    .await;
 
     // recover chain db
     chain_recover(&db, &config_path, height, consensus, clear_consensus_data).await;
@@ -64,7 +65,8 @@ pub async fn state_recover(
         config.l2_capacity,
         config.backup_interval,
         config.retreat_interval,
-    );
+    )
+    .await;
     // recover chain db
     chain_recover(&db, &config_path, height, consensus, clear_consensus_data).await;
     // recover executor from specify state
@@ -78,6 +80,6 @@ pub fn get_real_key(region: u32, key: &[u8]) -> String {
 }
 
 mod chain;
-mod common_storage;
+mod cloud_storage;
 mod executor;
 mod utxo;
