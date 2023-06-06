@@ -15,7 +15,7 @@
 extern crate core;
 
 use crate::backup::state_backup;
-use crate::recover::{common_storage_recover, recover, state_recover};
+use crate::recover::{cloud_storage_recover, recover, state_recover};
 use clap::{Parser, Subcommand};
 use std::env::{current_dir, set_current_dir};
 use std::path::PathBuf;
@@ -97,9 +97,9 @@ enum Commands {
         #[clap(long = "is-clear")]
         clear_consensus_data: bool,
     },
-    /// recover common storage status to specified height, ONLY USE IN EVM MODE
+    /// recover cloud storage status to specified height, ONLY USE IN EVM MODE
     #[clap(arg_required_else_help = true)]
-    CommonStorageRecover {
+    CloudStorageRecover {
         /// chain config path
         #[clap(short, long, default_value = "config.toml")]
         config_path: PathBuf,
@@ -194,7 +194,7 @@ async fn main() {
             )
             .await;
         }
-        Commands::CommonStorageRecover {
+        Commands::CloudStorageRecover {
             mut config_path,
             node_root,
             height,
@@ -204,7 +204,7 @@ async fn main() {
             }
             assert!(set_current_dir(&node_root).is_ok());
 
-            common_storage_recover(&config_path, height).await;
+            cloud_storage_recover(&config_path, height).await;
         }
     }
 }
