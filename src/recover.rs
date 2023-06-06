@@ -36,7 +36,7 @@ pub async fn recover(
         &config.cloud_storage,
         config.l1_capacity,
         config.l2_capacity,
-        u64::MAX,
+        u32::MAX as u64,
         config.retreat_interval,
     )
     .await;
