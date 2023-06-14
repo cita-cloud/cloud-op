@@ -32,9 +32,9 @@ libsm = "0.5"
 # crypto_eth
 tiny-keccak = { version = "2.0", features = ["keccak"] }
 # storage
-storage_opendal = { git = "https://github.com/cita-cloud/storage_opendal", package = "storage" }
+storage_opendal = { git = "https://github.com/cita-cloud/storage_opendal", package = "storage", branch = "v6.7.0" }
 # execute
-executor_evm = { git = "https://github.com/cita-cloud/executor_evm", package = "executor" }
+executor_evm = { git = "https://github.com/cita-cloud/executor_evm", package = "executor", branch = "v6.7.0" }
 
-cloud-util = { package = "cloud-util", git = "https://github.com/cita-cloud/cloud-common-rs" }
-cita_cloud_proto = { package = "cita_cloud_proto", git = "https://github.com/cita-cloud/cloud-common-rs" }
+cloud-util = "=0.7.0"
+cita_cloud_proto = "=6.7.0"
