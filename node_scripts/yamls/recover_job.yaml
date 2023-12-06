@@ -1,0 +1,44 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: recover-job
+spec:
+  backoffLimit: 0
+  manualSelector: true
+  selector:
+    matchLabels:
+      app: recover
+  template:
+    metadata:
+      labels:
+        app: recover
+    spec:
+      containers:
+      - args:
+        - mv source/$(ls source)/* ./recover/ && echo 'recover done!'
+        command:
+        - /bin/sh
+        - -c
+        image: busybox
+        imagePullPolicy: IfNotPresent
+        name: cloud-op-recover
+        resources:
+          limits:
+            cpu: 2000m
+            memory: 4196Mi
+          requests:
+            cpu: 1000m
+            memory: 2048Mi
+        volumeMounts:
+        - mountPath: /recover
+          name: datadir-sla-overlord-node5-1
+        - mountPath: /source
+          name: cloud-op-backup
+      restartPolicy: Never
+      volumes:
+      - name: cloud-op-backup
+        persistentVolumeClaim:
+          claimName: cloud-op-backup
+      - name: datadir-sla-overlord-node5-1
+        persistentVolumeClaim:
+          claimName: datadir-sla-overlord-node5-1

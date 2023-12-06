@@ -13,28 +13,23 @@
 // limitations under the License.
 
 use cita_database::{Config, DataCategory, Database, RocksDB, NUM_COLUMNS};
-use executor_evm::{
-    config::ExecutorConfig,
-    types::{
-        db_indexes::{BlockNumber2Hash, BlockNumber2Header, CurrentHash, DbIndex},
-        header::Header,
-        H256,
-    },
+use executor_evm::types::{
+    db_indexes::{BlockNumber2Hash, BlockNumber2Header, CurrentHash, DbIndex},
+    header::Header,
+    H256,
 };
-use fs_extra::{copy_items, dir};
-use std::fs::{read_dir, remove_dir_all};
 use std::path::Path;
 
-pub fn executor_recover(config_path: &Path, height: u64) {
-    let executor_config = ExecutorConfig::new(config_path.to_str().unwrap());
-    let state_path = executor_config.db_path.clone() + "/statedb";
-    state_recover(&state_path, height);
+pub fn executor_rollback(executor_db_path: &str, height: u64) {
+    let state_path = executor_db_path.to_owned() + "/statedb";
+    state_rollback(&state_path, height);
 
-    let chain_path = executor_config.db_path + "/nosql";
-    chain_db_recover(&chain_path, height);
+    let chain_path = executor_db_path.to_owned() + "/nosql";
+    chain_db_rollback(&chain_path, height);
+    println!("executor rollback done!");
 }
 
-fn state_recover(state_path: &str, height: u64) {
+fn state_rollback(state_path: &str, height: u64) {
     if !Path::new(&state_path).exists() {
         panic!("executor state_db dir not exist");
     }
@@ -58,7 +53,7 @@ fn state_recover(state_path: &str, height: u64) {
         .unwrap();
 }
 
-fn chain_db_recover(chain_path: &str, height: u64) {
+fn chain_db_rollback(chain_path: &str, height: u64) {
     if !Path::new(chain_path).exists() {
         panic!("executor chain db dir not exist");
     }
@@ -85,15 +80,15 @@ fn chain_db_recover(chain_path: &str, height: u64) {
         .unwrap();
 }
 
-pub fn move_state(config_path: &Path, backup_path: &Path, height: u64) {
-    let snap_path = backup_path.join(height.to_string());
-    read_dir(&snap_path).unwrap();
-    let executor_config = ExecutorConfig::new(config_path.to_str().unwrap());
-    let state_path = executor_config.db_path + "/statedb";
+// pub fn move_state(config_path: &Path, backup_path: &Path, height: u64) {
+//     let snap_path = backup_path.join(height.to_string());
+//     read_dir(&snap_path).unwrap();
+//     let executor_config = ExecutorConfig::new(config_path.to_str().unwrap());
+//     let state_path = executor_config.db_path + "/statedb";
 
-    let _ = remove_dir_all(&state_path);
+//     let _ = remove_dir_all(&state_path);
 
-    let mut copy_option = dir::CopyOptions::new();
-    copy_option.copy_inside = true;
-    copy_items(&[snap_path], state_path, &copy_option).unwrap();
-}
+//     let mut copy_option = dir::CopyOptions::new();
+//     copy_option.copy_inside = true;
+//     copy_items(&[snap_path], state_path, &copy_option).unwrap();
+// }
