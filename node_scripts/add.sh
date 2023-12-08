@@ -12,9 +12,9 @@ fi
 stop_scale=$((running - 1))
 backup_node="$STS_NAME-$stop_scale"
 export BACKUP_NODE=$backup_node
-new_node="$STS_NAME-$running"
-export NEW_NODE=$new_node
-echo "backup $backup_node to $new_node"
+RECOVER_NODE="$STS_NAME-$running"
+export RECOVER_NODE=$RECOVER_NODE
+echo "backup $backup_node to $RECOVER_NODE"
 
 kubectl scale sts $STS_NAME --replicas=$stop_scale -n$NAME_SPACE >/dev/null
 
@@ -43,7 +43,7 @@ kubectl scale sts $STS_NAME --replicas=$running -n$NAME_SPACE >/dev/null
 # recover
 kubectl apply -f ./yamls/node_pvc.yaml -n$NAME_SPACE >/dev/null
 kubectl apply -f ./yamls/recover_job.yaml -n$NAME_SPACE >/dev/null
-echo "waitting $new_node recover..."
+echo "waitting $RECOVER_NODE recover..."
 kubectl wait --for=condition=complete --timeout=-1s job/recover-job -n $NAME_SPACE
 
 add_scale=$((running + 1))
@@ -54,4 +54,4 @@ kubectl delete job backup-job -n$NAME_SPACE >/dev/null
 kubectl delete job recover-job -n$NAME_SPACE >/dev/null
 kubectl delete pvc cloud-op-backup -n$NAME_SPACE >/dev/null
 
-echo "add $new_node done!"
+echo "add $RECOVER_NODE done!"
