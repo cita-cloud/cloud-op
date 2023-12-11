@@ -1,30 +1,27 @@
 apiVersion: batch/v1
 kind: Job
 metadata:
-  name: backup-job
+  name: recover-job
 spec:
   backoffLimit: 0
   manualSelector: true
   selector:
     matchLabels:
-      app: backup
+      app: recover
   template:
     metadata:
       labels:
-        app: backup
+        app: recover
     spec:
       containers:
       - args:
-        - 'echo "backup start
-
-          " && cloud-op  backup -c ./config/config.toml -n ./source -b ../backup &&
-          sleep infinity'
+        - mv source/$(ls source)/* ./recover/ && echo 'recover done!'
         command:
         - /bin/sh
         - -c
-        image: docker.io/jayanring/cloud-op:latest
+        image: busybox
         imagePullPolicy: IfNotPresent
-        name: cloud-op-backup
+        name: cloud-op-recover
         resources:
           limits:
             cpu: 2000m
@@ -33,20 +30,15 @@ spec:
             cpu: 1000m
             memory: 2048Mi
         volumeMounts:
-        - mountPath: /backup
-          name: cloud-op-backup
+        - mountPath: /recover
+          name: datadir-sla-overlord-node5-1
         - mountPath: /source
-          name: datadir-sla-overlord-node5-0
-        - mountPath: /config
-          name: node-config
+          name: cloud-op-backup
       restartPolicy: Never
       volumes:
       - name: cloud-op-backup
         persistentVolumeClaim:
           claimName: cloud-op-backup
-      - name: datadir-sla-overlord-node5-0
+      - name: datadir-sla-overlord-node5-1
         persistentVolumeClaim:
-          claimName: datadir-sla-overlord-node5-0
-      - configMap:
-          name: sla-overlord-node5-config
-        name: node-config
+          claimName: datadir-sla-overlord-node5-1

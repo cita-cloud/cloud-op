@@ -33,7 +33,7 @@ with open("./yamls/backup/backup_job.yaml", "r") as stream:
         yaml_data = yaml.safe_load(stream)
     except yaml.YAMLError as exc:
         print(exc)
-cloud_op_command = f"echo 'backup start\n' && cloud-op backup -c ./config/config.toml -n ./source {ARGS} && mv ./source/backup/* ./backup && echo 'move done!'"
+cloud_op_command = f'echo "backup start\n" && cloud-op {ARGS} -c ./config/config.toml -n ./source -b ../backup && sleep infinity'
 yaml_data["spec"]["template"]["spec"]["containers"][0]["args"][0] = cloud_op_command
 yaml_data["spec"]["template"]["spec"]["containers"][0]["image"] = (
     DOCKER_REGISTRY + "/" + DOCKER_REPO + "/cloud-op:latest"
