@@ -19,6 +19,7 @@ rlp = "0.5"
 fs_extra = "1.2"
 async-recursion = "1.0"
 tokio = { version = "1", features = ["full"] }
+toml = "0.8"
 
 # storage
 storage_opendal = { git = "https://github.com/cita-cloud/storage_opendal", package = "storage", branch = "v6.7.2" }

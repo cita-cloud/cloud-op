@@ -14,9 +14,11 @@
 
 use executor_evm::config::ExecutorConfig;
 use fs_extra::{copy_items, dir::CopyOptions};
+use std::fs;
 use std::path::Path;
 use storage_opendal::{config::StorageConfig as OpendalConfig, storager::Storager};
 use storage_rocksdb::{config::StorageConfig as RocksdbConfig, db::DB};
+use toml::Table;
 
 pub const HASH_LEN: u32 = 32;
 
@@ -33,11 +35,19 @@ pub enum StorageDb {
     Opendal(Storager),
 }
 
-pub async fn storage_db(config_path: &Path, old_storage: bool) -> StorageDb {
-    if old_storage {
+pub async fn storage_db(config_path: &Path) -> StorageDb {
+    let s = fs::read_to_string(config_path)
+        .map_err(|e| println!("read config err: {e}"))
+        .unwrap();
+    let config: Table = s
+        .parse::<Table>()
+        .map_err(|e| println!("config toml parse err: {e}"))
+        .unwrap();
+
+    if config.contains_key("storage_rocksdb") {
         let config = RocksdbConfig::new(config_path.to_str().unwrap());
         StorageDb::RocksDB(DB::new(&config.db_path, &config))
-    } else {
+    } else if config.contains_key("storage_opendal") {
         let config = OpendalConfig::new(config_path.to_str().unwrap());
         StorageDb::Opendal(
             Storager::build(
@@ -50,6 +60,8 @@ pub async fn storage_db(config_path: &Path, old_storage: bool) -> StorageDb {
             )
             .await,
         )
+    } else {
+        panic!("storage config not found")
     }
 }
 

@@ -23,7 +23,7 @@ use std::path::Path;
 pub use storage_rollback::storage_rollback;
 
 pub async fn rollback(config_path: &Path, height: u64, clean_consensus_data: bool) {
-    let storage_db = storage_db(config_path, false).await;
+    let storage_db = storage_db(config_path).await;
     let StorageDb::Opendal(storager) = &storage_db else {
         panic!("rollback not support rocksdb")
     };

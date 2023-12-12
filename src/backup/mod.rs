@@ -21,16 +21,19 @@ use crate::{
 use cita_cloud_proto::storage::Regions;
 use std::path::{Path, PathBuf};
 use storage_opendal::{config::StorageConfig as OpendalConfig, storager::Storager};
+use storage_rocksdb::config::StorageConfig as RocksdbConfig;
+
+use std::fs;
+use toml::Table;
 
 pub async fn backup(
     config_path: PathBuf,
     mut backup_path: PathBuf,
     height: Option<u64>,
-    snapshot_only: bool,
-    old_storage: bool,
+    export_data: bool,
 ) {
     // check height
-    let storage_db = storage_db(&config_path, old_storage).await;
+    let storage_db = storage_db(&config_path).await;
     let executor_db_path = executor_db_path(&config_path);
     let current_height = read_current_height(&storage_db).await;
     println!("current height: {}", current_height);
@@ -48,21 +51,24 @@ pub async fn backup(
     // backup executor state
     let state_path = executor_db_path.to_owned() + "/statedb";
     let state_backup_path = backup_path.clone().join("data/statedb");
-    state_snapshot_backup(&state_path, &state_backup_path, backup_height);
-    println!("backup excutor state done!");
+    if export_data {
+        state_snapshot_backup(&state_path, &state_backup_path, backup_height);
+        println!("export excutor state done!");
+    } else {
+        copy_dir(Path::new(&state_path), &state_backup_path);
+        println!("copy excutor state done!");
+    }
 
-    if !snapshot_only {
-        // backup executor chain_db
-        let chain_path = executor_db_path.to_owned() + "/nosql";
-        let executor_backup_path = backup_path.clone().join("data/nosql");
-        copy_dir(Path::new(&chain_path), &executor_backup_path);
-        println!("copy excutor chain_db done!");
+    // backup executor chain_db
+    let chain_path = executor_db_path.to_owned() + "/nosql";
+    let executor_backup_path = backup_path.clone().join("data/nosql");
+    copy_dir(Path::new(&chain_path), &executor_backup_path);
+    println!("copy excutor chain_db done!");
 
-        // backup storage chain_data
-        if old_storage {
-            let StorageDb::RocksDB(read) = &storage_db else {
-                unreachable!()
-            };
+    // backup storage data
+    if export_data {
+        // convert storage rocksdb data to storage opendal data
+        if let StorageDb::RocksDB(read) = &storage_db {
             let storage_backup_path = backup_path.clone().join("chain_data");
             let config = OpendalConfig::default();
             let write = Storager::build(
@@ -74,8 +80,8 @@ pub async fn backup(
                 config.retreat_interval,
             )
             .await;
-            for height in 0..=current_height {
-                print!("\rconverting old: {}/{}", height, current_height);
+            for height in 0..=backup_height {
+                print!("\rconverting old: {}/{}", height, backup_height);
                 let height_bytes = height.to_be_bytes().to_vec();
                 let old_block_bytes = read.load_full_block(height_bytes.clone()).unwrap();
                 let mut old_bytes = read.load(4, height_bytes.clone()).unwrap();
@@ -86,7 +92,7 @@ pub async fn backup(
                     .await
                     .unwrap();
             }
-            println!("\nconvert old block done!");
+            println!("\nexport block done!");
 
             let global_region = i32::from(Regions::Global) as u32;
             for lock_id in 1000u64..1008 {
@@ -100,25 +106,9 @@ pub async fn backup(
                         .unwrap();
                 }
             }
-            println!("convert old utxo done!");
-        } else {
-            let StorageDb::Opendal(storager) = &storage_db else {
-                unreachable!()
-            };
-            let storage_path = storager
-                .next_storager
-                .as_ref()
-                .unwrap()
-                .operator
-                .info()
-                .name()
-                .to_owned();
-            let storage_backup_path = backup_path.clone().join("chain_data");
-            copy_dir(Path::new(&storage_path), &storage_backup_path);
-            println!("copy storage chain_data done!");
-        }
-
-        if backup_height != current_height {
+            println!("export utxo done!");
+        } else if let StorageDb::Opendal(read) = &storage_db {
+            // export storage opendal data to storage opendal data
             let storage_backup_path = backup_path.clone().join("chain_data");
             let config = OpendalConfig::default();
             let write = Storager::build(
@@ -130,10 +120,82 @@ pub async fn backup(
                 config.retreat_interval,
             )
             .await;
-            // rollback to backup_height
-            executor_rollback(&executor_db_path, backup_height);
-            storage_rollback(&write, backup_height, false).await;
+            for height in 0..=backup_height {
+                print!("\rexporting: {}/{}", height, backup_height);
+                let height_bytes = height.to_be_bytes().to_vec();
+                let block_bytes = read.load_full_block(&height_bytes).await.unwrap();
+                let mut block_hash_bytes = read
+                    .load(&get_real_key(4, &height_bytes), true)
+                    .await
+                    .unwrap();
+                block_hash_bytes.extend_from_slice(&block_bytes);
+
+                write
+                    .store_all_block_data(&height_bytes, &block_hash_bytes)
+                    .await
+                    .unwrap();
+            }
+            println!("\nexport block done!");
+
+            let global_region = i32::from(Regions::Global) as u32;
+            for lock_id in 1000u64..1008 {
+                if let Ok(hash) = read
+                    .load(
+                        &get_real_key(global_region, lock_id.to_be_bytes().as_ref()),
+                        true,
+                    )
+                    .await
+                {
+                    write
+                        .store(
+                            &get_real_key(global_region, lock_id.to_be_bytes().as_ref()),
+                            hash.as_slice(),
+                        )
+                        .await
+                        .unwrap();
+                }
+            }
+            println!("export utxo done!");
+        } else {
+            panic!("storage db not found")
         }
+    } else {
+        // directly copy storage data
+        let s = fs::read_to_string(&config_path)
+            .map_err(|e| println!("read config err: {e}"))
+            .unwrap();
+        let config: Table = s
+            .parse::<Table>()
+            .map_err(|e| println!("config toml parse err: {e}"))
+            .unwrap();
+        let storage_path = if config.contains_key("storage_rocksdb") {
+            let config = RocksdbConfig::new(config_path.to_str().unwrap());
+            config.db_path
+        } else if config.contains_key("storage_opendal") {
+            let config = OpendalConfig::new(config_path.to_str().unwrap());
+            config.data_root
+        } else {
+            panic!("storage config not found")
+        };
+        let storage_backup_path = backup_path.clone().join("chain_data");
+        copy_dir(Path::new(&storage_path), &storage_backup_path);
+        println!("copy storage chain_data done!");
     }
+
+    let storage_backup_path = backup_path.clone().join("chain_data");
+    let config = OpendalConfig::default();
+    let write = Storager::build(
+        storage_backup_path.to_str().unwrap(),
+        &config.cloud_storage,
+        config.l1_capacity,
+        config.l2_capacity,
+        u32::MAX as u64,
+        config.retreat_interval,
+    )
+    .await;
+    // rollback to backup_height
+    executor_rollback(&executor_db_path, backup_height);
+    storage_rollback(&write, backup_height, false).await;
+
     println!("backup done!");
 }

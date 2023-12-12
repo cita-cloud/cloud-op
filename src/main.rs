@@ -22,7 +22,7 @@ use clap::{Parser, Subcommand};
 use std::env::{current_dir, set_current_dir};
 use std::path::PathBuf;
 
-/// Simple program to greet a person
+/// cloud-op to operate data of cita-cloud node
 #[derive(Parser)]
 #[clap(author, version, about, long_about = None)]
 struct Cli {
@@ -32,7 +32,7 @@ struct Cli {
 
 #[derive(Subcommand)]
 enum Commands {
-    /// rollback chain status to specified height, ONLY USE IN EVM MODE
+    /// rollback chain status to specified height
     #[clap(arg_required_else_help = true)]
     Rollback {
         /// chain config path
@@ -48,7 +48,7 @@ enum Commands {
         #[clap(long = "clean")]
         clean_consensus_data: bool,
     },
-    /// rollback cloud storage status to specified height, ONLY USE IN EVM MODE
+    /// rollback cloud storage status to specified height
     #[clap(arg_required_else_help = true)]
     CloudRollback {
         /// chain config path
@@ -73,14 +73,11 @@ enum Commands {
         #[clap(short, long, default_value = "backup")]
         backup_path: PathBuf,
         /// backup height
-        #[clap(short, long)]
+        #[clap(required = true)]
         height: Option<u64>,
-        /// whether to only backup executor state
-        #[clap(short, long)]
-        snapshot_only: bool,
-        /// whether storage is rocksdb, if so, data will be converted
-        #[clap(short, long)]
-        old_storage: bool,
+        /// whether to export database or copy database
+        #[clap(long = "export")]
+        export_data: bool,
     },
 }
 #[tokio::main]
@@ -121,8 +118,7 @@ async fn operate(command: Commands) {
             node_root,
             mut backup_path,
             height,
-            snapshot_only,
-            old_storage,
+            export_data,
         } => {
             if !config_path.is_absolute() {
                 config_path = current_dir().unwrap().join(config_path);
@@ -133,7 +129,7 @@ async fn operate(command: Commands) {
                 backup_path = current_dir().unwrap().join(backup_path);
             }
 
-            backup(config_path, backup_path, height, snapshot_only, old_storage).await;
+            backup(config_path, backup_path, height, export_data).await;
         }
     }
 }

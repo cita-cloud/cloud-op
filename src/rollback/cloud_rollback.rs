@@ -16,7 +16,7 @@ use crate::util::{get_real_key, storage_db, StorageDb};
 use std::path::Path;
 
 pub async fn cloud_storage_rollback(config_path: &Path, rollback_backup_height: u64) {
-    let storage_db = storage_db(config_path, false).await;
+    let storage_db = storage_db(config_path).await;
     let StorageDb::Opendal(storager) = &storage_db else {
         panic!("cloud rollback not support rocksdb")
     };

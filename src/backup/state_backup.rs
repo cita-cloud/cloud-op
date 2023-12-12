@@ -73,8 +73,10 @@ pub fn state_snapshot_backup(state_path: &str, backup_path: &PathBuf, height: u6
     )
     .unwrap();
 
-    for addr in addrs {
-        let st_data = pt.get(&addr).unwrap().unwrap();
+    let addrs_count = addrs.len();
+    for (i, addr) in addrs.iter().enumerate() {
+        print!("\rexporting: {}/{}", i + 1, addrs_count);
+        let st_data = pt.get(addr).unwrap().unwrap();
         let addr = Address::from_slice(addr.as_slice());
         // get account state object from vm
         let st_obj = StateObject::from_rlp(&st_data).unwrap();
@@ -106,6 +108,7 @@ pub fn state_snapshot_backup(state_path: &str, backup_path: &PathBuf, height: u6
         )
         .unwrap();
     }
+    println!("\nexport stat done!");
 }
 
 fn backup_extra(state_rocks_db: &Arc<RocksDB>, backup_rocks_db: &Arc<RocksDB>, height: u64) {
