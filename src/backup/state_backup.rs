@@ -12,12 +12,6 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-use std::path::PathBuf;
-use std::sync::Arc;
-
-use crate::config::ConsensusType;
-use crate::config::ExecutorConfig;
-use crate::crypto::CryptoType;
 use cita_database::{Config, DataCategory, Database, RocksDB, NUM_COLUMNS};
 use cita_trie::{PatriciaTrie, Trie, DB};
 use cita_types::{Address, H256};
@@ -27,15 +21,11 @@ use executor_evm::trie_db::{NodeType, TrieDb};
 use executor_evm::types::db_indexes::{BlockNumber2Hash, CurrentHash, DbIndex, Hash2Header};
 use executor_evm::types::header::Header;
 use rlp::decode;
+use std::path::PathBuf;
+use std::sync::Arc;
 
-pub fn state_backup_inner(
-    config_path: PathBuf,
-    backup_path: PathBuf,
-    height: u64,
-    _consensus: ConsensusType,
-    _crypto: CryptoType,
-) {
-    if let Err(e) = std::fs::create_dir_all(&backup_path) {
+pub fn state_snapshot_backup(state_path: &str, backup_path: &PathBuf, height: u64) {
+    if let Err(e) = std::fs::create_dir_all(backup_path) {
         println!(" backup dir create err {:?}", e);
         return;
     }
@@ -43,11 +33,8 @@ pub fn state_backup_inner(
     let hasher = Arc::new(common::hash::get_hasher());
 
     let config = Config::with_category_num(NUM_COLUMNS);
-    let executor_config = ExecutorConfig::new(config_path.to_str().unwrap());
-    let statedb_path = executor_config.db_path + "/statedb";
-    let state_rocks_db = Arc::new(RocksDB::open(&statedb_path, &config).unwrap());
+    let state_rocks_db = Arc::new(RocksDB::open(state_path, &config).unwrap());
 
-    let backup_path = backup_path.join(height.to_string());
     let backup_rocks_db = Arc::new(RocksDB::open(backup_path.to_str().unwrap(), &config).unwrap());
 
     // get block hash
@@ -86,8 +73,10 @@ pub fn state_backup_inner(
     )
     .unwrap();
 
-    for addr in addrs {
-        let st_data = pt.get(&addr).unwrap().unwrap();
+    let addrs_count = addrs.len();
+    for (i, addr) in addrs.iter().enumerate() {
+        print!("\rexporting: {}/{}", i + 1, addrs_count);
+        let st_data = pt.get(addr).unwrap().unwrap();
         let addr = Address::from_slice(addr.as_slice());
         // get account state object from vm
         let st_obj = StateObject::from_rlp(&st_data).unwrap();
@@ -119,7 +108,7 @@ pub fn state_backup_inner(
         )
         .unwrap();
     }
-    println!("extract_backup finish.");
+    println!("\nexport stat done!");
 }
 
 fn backup_extra(state_rocks_db: &Arc<RocksDB>, backup_rocks_db: &Arc<RocksDB>, height: u64) {

@@ -12,15 +12,17 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-extern crate core;
+mod backup;
+mod rollback;
+mod util;
 
-use crate::backup::state_backup;
-use crate::recover::{cloud_storage_recover, recover, state_recover};
+use crate::backup::backup;
+use crate::rollback::{cloud_storage_rollback, rollback};
 use clap::{Parser, Subcommand};
 use std::env::{current_dir, set_current_dir};
 use std::path::PathBuf;
 
-/// Simple program to greet a person
+/// cloud-op to operate data of cita-cloud node
 #[derive(Parser)]
 #[clap(author, version, about, long_about = None)]
 struct Cli {
@@ -30,9 +32,37 @@ struct Cli {
 
 #[derive(Subcommand)]
 enum Commands {
-    /// hot backup executor_evm & chain db, ONLY USE IN EVM MODE
+    /// rollback chain status to specified height
     #[clap(arg_required_else_help = true)]
-    StateBackup {
+    Rollback {
+        /// chain config path
+        #[clap(short, long, default_value = "config.toml")]
+        config_path: PathBuf,
+        /// node root path
+        #[clap(short, long, default_value = ".")]
+        node_root: PathBuf,
+        /// the specified height that you want to rollback to
+        #[clap(required = true)]
+        height: u64,
+        /// whether to clean consensus data
+        #[clap(long = "clean")]
+        clean_consensus_data: bool,
+    },
+    /// rollback cloud storage status to specified height
+    #[clap(arg_required_else_help = true)]
+    CloudRollback {
+        /// chain config path
+        #[clap(short, long, default_value = "config.toml")]
+        config_path: PathBuf,
+        /// node root path
+        #[clap(short, long, default_value = ".")]
+        node_root: PathBuf,
+        /// the specified height that you want to rollback to
+        #[clap(required = true)]
+        height: u64,
+    },
+    /// backup executor and storage data of a specified height
+    Backup {
         /// chain config path
         #[clap(short, long, default_value = "config.toml")]
         config_path: PathBuf,
@@ -40,177 +70,66 @@ enum Commands {
         #[clap(short, long, default_value = ".")]
         node_root: PathBuf,
         /// backup path dir
-        #[clap(short, long, default_value = "backup/state")]
+        #[clap(short, long, default_value = "backup")]
         backup_path: PathBuf,
+        /// backup height
         #[clap(required = true)]
-        height: u64,
-        /// specify crypto server, sm or eth
-        #[clap(long, default_value = "sm")]
-        crypto: String,
-        /// specify consensus server, raft or overlord
-        #[clap(long, default_value = "raft")]
-        consensus: String,
-    },
-    /// recover chain from early state, ONLY USE IN EVM MODE
-    #[clap(arg_required_else_help = true)]
-    StateRecover {
-        /// chain config path
-        #[clap(short, long, default_value = "config.toml")]
-        config_path: PathBuf,
-        /// node root path
-        #[clap(short, long, default_value = ".")]
-        node_root: PathBuf,
-        /// backup path dir
-        #[clap(short, long, default_value = "backup/state")]
-        backup_path: PathBuf,
-        #[clap(required = true)]
-        height: u64,
-        /// specify crypto server, sm or eth
-        #[clap(long, default_value = "sm")]
-        crypto: String,
-        /// specify consensus server, raft or overlord
-        #[clap(long, default_value = "raft")]
-        consensus: String,
-        /// specify whether to clear consensus data
-        #[clap(long = "is-clear")]
-        clear_consensus_data: bool,
-    },
-    /// recover chain status to specified height, ONLY USE IN EVM MODE
-    #[clap(arg_required_else_help = true)]
-    Recover {
-        /// chain config path
-        #[clap(short, long, default_value = "config.toml")]
-        config_path: PathBuf,
-        /// node root path
-        #[clap(short, long, default_value = ".")]
-        node_root: PathBuf,
-        /// the specified height that you want to recover to
-        #[clap(required = true)]
-        height: u64,
-        /// specify crypto server, sm or eth
-        #[clap(long, default_value = "sm")]
-        crypto: String,
-        /// specify consensus server, raft or overlord
-        #[clap(long, default_value = "raft")]
-        consensus: String,
-        /// specify whether to clear consensus data
-        #[clap(long = "is-clear")]
-        clear_consensus_data: bool,
-    },
-    /// recover cloud storage status to specified height, ONLY USE IN EVM MODE
-    #[clap(arg_required_else_help = true)]
-    CloudStorageRecover {
-        /// chain config path
-        #[clap(short, long, default_value = "config.toml")]
-        config_path: PathBuf,
-        /// node root path
-        #[clap(short, long, default_value = ".")]
-        node_root: PathBuf,
-        /// the specified height that you want to recover to
-        #[clap(required = true)]
-        height: u64,
+        height: Option<u64>,
+        /// whether to export database or copy database
+        #[clap(long = "export")]
+        export_data: bool,
     },
 }
-
 #[tokio::main]
 async fn main() {
-    let cli = Cli::parse();
+    let command = Cli::parse().command;
+    operate(command).await;
+}
 
-    match cli.command {
-        Commands::StateBackup {
+async fn operate(command: Commands) {
+    match command {
+        Commands::Rollback {
             mut config_path,
             node_root,
-            mut backup_path,
             height,
-            crypto,
-            consensus,
+            clean_consensus_data,
         } => {
             if !config_path.is_absolute() {
                 config_path = current_dir().unwrap().join(config_path);
             }
-            if !backup_path.is_absolute() {
-                backup_path = current_dir().unwrap().join(backup_path);
+            assert!(set_current_dir(&node_root).is_ok());
+
+            rollback(&config_path, height, clean_consensus_data).await;
+        }
+        Commands::CloudRollback {
+            mut config_path,
+            node_root,
+            height,
+        } => {
+            if !config_path.is_absolute() {
+                config_path = current_dir().unwrap().join(config_path);
+            }
+            assert!(set_current_dir(&node_root).is_ok());
+
+            cloud_storage_rollback(&config_path, height).await;
+        }
+        Commands::Backup {
+            mut config_path,
+            node_root,
+            mut backup_path,
+            height,
+            export_data,
+        } => {
+            if !config_path.is_absolute() {
+                config_path = current_dir().unwrap().join(config_path);
             }
             assert!(set_current_dir(node_root).is_ok());
 
-            state_backup(
-                config_path,
-                backup_path,
-                height,
-                consensus.as_str().into(),
-                crypto.as_str().into(),
-            );
-        }
-        Commands::StateRecover {
-            mut config_path,
-            node_root,
-            mut backup_path,
-            height,
-            crypto,
-            consensus,
-            clear_consensus_data,
-        } => {
-            if !config_path.is_absolute() {
-                config_path = current_dir().unwrap().join(config_path);
-            }
             if !backup_path.is_absolute() {
                 backup_path = current_dir().unwrap().join(backup_path);
             }
-            assert!(set_current_dir(&node_root).is_ok());
-            assert!(node_root
-                .join(backup_path.clone())
-                .join(height.to_string())
-                .exists());
 
-            state_recover(
-                config_path,
-                backup_path,
-                height,
-                consensus.as_str().into(),
-                crypto.as_str().into(),
-                clear_consensus_data,
-            )
-            .await;
-        }
-        Commands::Recover {
-            mut config_path,
-            node_root,
-            height,
-            crypto,
-            consensus,
-            clear_consensus_data,
-        } => {
-            if !config_path.is_absolute() {
-                config_path = current_dir().unwrap().join(config_path);
-            }
-            assert!(set_current_dir(&node_root).is_ok());
-
-            recover(
-                config_path,
-                height,
-                consensus.as_str().into(),
-                crypto.as_str().into(),
-                clear_consensus_data,
-            )
-            .await;
-        }
-        Commands::CloudStorageRecover {
-            mut config_path,
-            node_root,
-            height,
-        } => {
-            if !config_path.is_absolute() {
-                config_path = current_dir().unwrap().join(config_path);
-            }
-            assert!(set_current_dir(&node_root).is_ok());
-
-            cloud_storage_recover(&config_path, height).await;
+            backup(config_path, backup_path, height, export_data).await;
         }
     }
 }
-
-mod backup;
-mod config;
-mod crypto;
-mod recover;
-mod storage;
