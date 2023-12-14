@@ -79,16 +79,3 @@ fn chain_db_rollback(chain_path: &str, height: u64) {
         )
         .unwrap();
 }
-
-// pub fn move_state(config_path: &Path, backup_path: &Path, height: u64) {
-//     let snap_path = backup_path.join(height.to_string());
-//     read_dir(&snap_path).unwrap();
-//     let executor_config = ExecutorConfig::new(config_path.to_str().unwrap());
-//     let state_path = executor_config.db_path + "/statedb";
-
-//     let _ = remove_dir_all(&state_path);
-
-//     let mut copy_option = dir::CopyOptions::new();
-//     copy_option.copy_inside = true;
-//     copy_items(&[snap_path], state_path, &copy_option).unwrap();
-// }

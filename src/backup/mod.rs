@@ -182,6 +182,7 @@ pub async fn backup(
         println!("copy storage chain_data done!");
     }
 
+    // rollback to backup_height
     let storage_backup_path = backup_path.clone().join("chain_data");
     let config = OpendalConfig::default();
     let write = Storager::build(
@@ -193,8 +194,10 @@ pub async fn backup(
         config.retreat_interval,
     )
     .await;
-    // rollback to backup_height
-    executor_rollback(&executor_db_path, backup_height);
+    executor_rollback(
+        executor_backup_path.as_os_str().to_str().unwrap(),
+        backup_height,
+    );
     storage_rollback(&write, backup_height, false).await;
 
     println!("backup done!");
