@@ -195,7 +195,12 @@ pub async fn backup(
     )
     .await;
     executor_rollback(
-        executor_backup_path.as_os_str().to_str().unwrap(),
+        backup_path
+            .clone()
+            .join("data")
+            .as_os_str()
+            .to_str()
+            .unwrap(),
         backup_height,
     );
     storage_rollback(&write, backup_height, false).await;
