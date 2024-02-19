@@ -18,6 +18,8 @@ use crate::{
     rollback::{executor_rollback, storage_rollback},
     util::{copy_dir, executor_db_path, get_real_key, read_current_height, storage_db, StorageDb},
 };
+use cita_cloud_proto::blockchain::raw_transaction::Tx::UtxoTx;
+use cita_cloud_proto::blockchain::Block;
 use cita_cloud_proto::storage::Regions;
 use std::path::{Path, PathBuf};
 use storage_opendal::{config::StorageConfig as OpendalConfig, storager::Storager};
@@ -25,6 +27,8 @@ use storage_rocksdb::config::StorageConfig as RocksdbConfig;
 
 use std::fs;
 use toml::Table;
+
+use prost::Message;
 
 pub async fn backup(
     config_path: PathBuf,
@@ -91,22 +95,26 @@ pub async fn backup(
                     .store_all_block_data(&height_bytes, &old_bytes)
                     .await
                     .unwrap();
-            }
-            println!("\nexport block done!");
 
-            let global_region = i32::from(Regions::Global) as u32;
-            for lock_id in 1000u64..1008 {
-                if let Ok(hash) = read.load(global_region, lock_id.to_be_bytes().to_vec()) {
-                    write
-                        .store(
-                            &get_real_key(global_region, lock_id.to_be_bytes().as_slice()),
-                            hash.as_slice(),
-                        )
-                        .await
-                        .unwrap();
+                // handle utxo tx
+                let block = Block::decode(old_block_bytes.as_slice()).unwrap();
+                let global_region = i32::from(Regions::Global) as u32;
+                for raw_tx in block.body.unwrap().body {
+                    if let UtxoTx(utxo_tx) = raw_tx.tx.unwrap() {
+                        let tx_hash = utxo_tx.transaction_hash;
+                        let lock_id = utxo_tx.transaction.unwrap().lock_id;
+
+                        write
+                            .store(
+                                &get_real_key(global_region, lock_id.to_be_bytes().as_ref()),
+                                tx_hash.as_slice(),
+                            )
+                            .await
+                            .unwrap();
+                    }
                 }
             }
-            println!("export utxo done!");
+            println!("\nexport block done!");
         } else if let StorageDb::Opendal(read) = &storage_db {
             // export storage opendal data to storage opendal data
             let storage_backup_path = backup_path.clone().join("chain_data");
@@ -134,28 +142,26 @@ pub async fn backup(
                     .store_all_block_data(&height_bytes, &block_hash_bytes)
                     .await
                     .unwrap();
-            }
-            println!("\nexport block done!");
 
-            let global_region = i32::from(Regions::Global) as u32;
-            for lock_id in 1000u64..1008 {
-                if let Ok(hash) = read
-                    .load(
-                        &get_real_key(global_region, lock_id.to_be_bytes().as_ref()),
-                        true,
-                    )
-                    .await
-                {
-                    write
-                        .store(
-                            &get_real_key(global_region, lock_id.to_be_bytes().as_ref()),
-                            hash.as_slice(),
-                        )
-                        .await
-                        .unwrap();
+                // handle utxo tx
+                let block = Block::decode(block_bytes.as_slice()).unwrap();
+                let global_region = i32::from(Regions::Global) as u32;
+                for raw_tx in block.body.unwrap().body {
+                    if let UtxoTx(utxo_tx) = raw_tx.tx.unwrap() {
+                        let tx_hash = utxo_tx.transaction_hash;
+                        let lock_id = utxo_tx.transaction.unwrap().lock_id;
+
+                        write
+                            .store(
+                                &get_real_key(global_region, lock_id.to_be_bytes().as_ref()),
+                                tx_hash.as_slice(),
+                            )
+                            .await
+                            .unwrap();
+                    }
                 }
             }
-            println!("export utxo done!");
+            println!("\nexport block done!");
         } else {
             panic!("storage db not found")
         }
@@ -180,30 +186,30 @@ pub async fn backup(
         let storage_backup_path = backup_path.clone().join("chain_data");
         copy_dir(Path::new(&storage_path), &storage_backup_path);
         println!("copy storage chain_data done!");
-    }
 
-    // rollback to backup_height
-    let storage_backup_path = backup_path.clone().join("chain_data");
-    let config = OpendalConfig::default();
-    let write = Storager::build(
-        storage_backup_path.to_str().unwrap(),
-        &config.cloud_storage,
-        config.l1_capacity,
-        config.l2_capacity,
-        u32::MAX as u64,
-        config.retreat_interval,
-    )
-    .await;
-    executor_rollback(
-        backup_path
-            .clone()
-            .join("data")
-            .as_os_str()
-            .to_str()
-            .unwrap(),
-        backup_height,
-    );
-    storage_rollback(&write, backup_height, false).await;
+        // rollback to backup_height
+        let storage_backup_path = backup_path.clone().join("chain_data");
+        let config = OpendalConfig::default();
+        let write = Storager::build(
+            storage_backup_path.to_str().unwrap(),
+            &config.cloud_storage,
+            config.l1_capacity,
+            config.l2_capacity,
+            u32::MAX as u64,
+            config.retreat_interval,
+        )
+        .await;
+        executor_rollback(
+            backup_path
+                .clone()
+                .join("data")
+                .as_os_str()
+                .to_str()
+                .unwrap(),
+            backup_height,
+        );
+        storage_rollback(&write, backup_height, false).await;
+    }
 
     println!("backup done!");
 }
