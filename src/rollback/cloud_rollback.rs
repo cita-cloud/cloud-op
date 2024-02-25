@@ -35,6 +35,8 @@ pub async fn cloud_storage_rollback(config_path: &Path, rollback_backup_height: 
         buf.clone_from_slice(&remote_height_bytes[..8]);
         let current_backup_height = u64::from_be_bytes(buf);
         println!("current_backup_height: {current_backup_height}");
+        // value of key(0, 1) include backup height(u64) and backup index(u32)
+        // when rollback_backup_height == current_backup_height, maybe the backup of current height hasn't completed
         if rollback_backup_height >= current_backup_height {
             panic!(
                 "rollback backup_height({}) >= current backup_height({})",
@@ -43,11 +45,14 @@ pub async fn cloud_storage_rollback(config_path: &Path, rollback_backup_height: 
         }
         println!("rollback_backup_height: {rollback_backup_height}");
 
+        // value of key(0, 1) include backup height(u64) and backup index(u32)
+        // rollback to the height, we should set key(0, 1) as (height + 1, 0)
+        let mut buf = Vec::new();
+        let height = rollback_backup_height + 1;
+        buf.extend_from_slice(&height.to_be_bytes());
+        buf.extend_from_slice(&[0u8; 4]);
         remote
-            .write(
-                &get_real_key(0, &1u64.to_be_bytes()),
-                rollback_backup_height.to_be_bytes().to_vec(),
-            )
+            .write(&get_real_key(0, &1u64.to_be_bytes()), buf)
             .await
             .unwrap();
         println!("cloud rollback done!");
