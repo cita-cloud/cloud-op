@@ -21,6 +21,9 @@ use storage_rocksdb::{config::StorageConfig as RocksdbConfig, db::DB};
 use toml::Table;
 
 pub const HASH_LEN: u32 = 32;
+pub const OVERLORD_DATA: &str = "./overlord_wal";
+pub const RAFT_DATA: &str = "./raft-data-dir";
+pub const CONTROLLER_WAL: &str = "./data/wal_chain";
 
 pub fn get_real_key(region: u32, key: &[u8]) -> String {
     hex::encode([region.to_be_bytes().as_slice(), key].concat())

@@ -34,7 +34,7 @@
 
     将来恢复时直接将备份数据拷贝到节点目录下即可。
 
-    备份操作又分两种：一种是直接拷贝数据库文件，并将备份数据回滚到指定的高度，以避免数据处于中间状态；另外一种是新建空的备份数据库，将现有数据库中的数据导出，重新导入新的备份数据库。
+    备份操作是直接拷贝数据库文件，并将备份数据回滚到指定的高度，以避免数据处于中间状态。
 
     适用于：
     
@@ -42,7 +42,15 @@
 
     b. 节点存储损坏，导致节点数据全部丢失。
 
-    c. 版本升级过程中存储格式发生变化，新老版本不兼容。这时要采用导出/导入的方式进行备份，同时完成了格式转换。
+4. `export` 导出。 
+
+    导出操作是新建空的数据库，将现有数据库中的数据导出，重新写入新的备份数据库。
+
+    适用于：
+    
+    a. 版本升级过程中存储格式发生变化，新老版本不兼容。这时要采用导出/导入的方式进行备份，同时完成了格式转换。
+
+    b. 对数据做增量备份，导出操作可以指定起始和结束块高。
 
 ```shell
 $ cloud-op --help
@@ -51,9 +59,10 @@ cloud-op to operate data of cita-cloud node
 Usage: cloud-op <COMMAND>
 
 Commands:
-  rollback        rollback chain status to specified height, ONLY USE IN EVM MODE
-  cloud-rollback  rollback cloud storage status to specified height, ONLY USE IN EVM MODE
+  rollback        rollback chain status to specified height
+  cloud-rollback  rollback cloud storage status to specified height
   backup          backup executor and storage data of a specified height
+  export          export executor and storage data of a range of height
   help            Print this message or the help of the given subcommand(s)
 
 Options:
@@ -118,99 +127,123 @@ Arguments:
 Options:
   -c, --config-path <CONFIG_PATH>  chain config path [default: config.toml]
   -n, --node-root <NODE_ROOT>      node root path [default: .]
-  -b, --backup-path <BACKUP_PATH>  backup path dir [default: backup]
-      --export                     whether to export database or copy database
+  -p, --path <PATH>                backup path dir [default: backup]
   -h, --help                       Print help
 ```
 
-注意：`--export`开关仅在前述`3.c`情况才需要打开，耗时比不加的时候要长，请一定要事先确认好。
+### export
+
+```shell
+$ cloud-op export -h
+export executor and storage data of a range of height
+
+Usage: cloud-op export [OPTIONS] --begin-height <BEGIN_HEIGHT> --end-height <END_HEIGHT>
+
+Options:
+  -c, --config-path <CONFIG_PATH>    chain config path [default: config.toml]
+  -n, --node-root <NODE_ROOT>        node root path [default: .]
+  -p, --path <PATH>                  export path dir [default: export]
+  -b, --begin-height <BEGIN_HEIGHT>  export begin height
+  -e, --end-height <END_HEIGHT>      export end height
+  -h, --help                         Print help
+```
 
 ## 示例：
 
 #### rollback
 
 ```shell
-$ cloud-op rollback -c config.toml -n . 190000
-current height: 197292
-rollback height: 190000
+$ cloud-op rollback -c config.toml -n . 1900
+current height: 2204
+rollback height: 1900
 lock_id(1000) never change from genesis
 lock_id(1001) never change from genesis
-lock_id(1002) keep change
-lock_id(1003) keep change
-lock_id(1004) keep change
-lock_id(1005) keep change
+lock_id(1002) never change from genesis
+lock_id(1003) never change from genesis
+lock_id(1004) never change from genesis
+lock_id(1005) never change from genesis
 lock_id(1006) never change from genesis
-lock_id(1007) keep change
 storage rollback done!
-
-executor rollback done
+executor rollback done!
 ```
 
 ### backup
 
-对节点做备份(直接copy)
+对节点做备份
 
 ```shell
-$ cloud-op backup -c config.toml -n . -b /tmp/backup/ 190000
-current height: 197451         
-backup height: 190000         
-backup excutor state done!    
+$ cloud-op backup -c config.toml -n . -p /tmp/backup/ 1800
+current height: 1900
+backup height: 1800
+copy excutor state done!
 copy excutor chain_db done!
-copy storage chain_data done!                                                                                                          
-executor rollback done!   
-lock_id(1000) never change from genesis
-lock_id(1001) never change from genesis
-lock_id(1002) keep change 
-lock_id(1003) keep change 
-lock_id(1004) keep change
-lock_id(1005) keep change
-lock_id(1006) never change from genesis                                                                                                
-lock_id(1007) keep change
-storage rollback done!
-backup done!
-
-# tree /tmp/backup/ -L 2 
-/tmp/backup/                            
-└── 190000                              
-    ├── chain_data                                                                                                                     
-    └── data
-```
-
-对节点做备份(导入导出方式)
-
-```shell
-$ cloud-op backup -c config.toml -n . -b /tmp/backup/ --export 190000
-current height: 198260
-backup height: 190000
-exporting: 8/8
-export stat done!
-export excutor state done!
-copy excutor chain_db done!
-exporting: 190000/190000
-export block done!
-export utxo done!
+copy storage chain_data done!
 executor rollback done!
 lock_id(1000) never change from genesis
 lock_id(1001) never change from genesis
-lock_id(1002) keep change
-lock_id(1003) keep change
-lock_id(1004) keep change
-lock_id(1005) keep change
+lock_id(1002) never change from genesis
+lock_id(1003) never change from genesis
+lock_id(1004) never change from genesis
+lock_id(1005) never change from genesis
 lock_id(1006) never change from genesis
-lock_id(1007) keep change
 storage rollback done!
 backup done!
 
 # tree /tmp/backup/ -L 2 
 /tmp/backup/                            
-└── 190000                              
+└── 1800                              
     ├── chain_data                                                                                                                     
     └── data
 ```
 
-从备份恢复
+### export
+
+对前1800个区块的数据进行导出
+
+```shell
+$ cloud-op export -c config.toml -n . -p /tmp/export/ -b 0 -e 1800
+export height: [0, 1800]
+current height: 1900
+exporting: 3/3
+export stat done!
+export excutor state done!
+copy excutor chain_db done!
+converting old: 1800
+export block done!
+export done!
+
+# tree /tmp/export/ -L 1
+/tmp/export/
+├── chain_data
+└── data
+```
+
+增量导出 [1801, 1900] 范围内区块的数据
+
+```shell
+$ cloud-op export -c config.toml -n . -p /tmp/export/ -b 1801 -e 1900
+export height: [1801, 1900]
+current height: 1900
+exporting: 3/3
+export stat done!
+export excutor state done!
+copy excutor chain_db done!
+converting old: 1900
+export block done!
+export done!
+```
+
+
+### restore
+
+使用备份或者导出数据恢复节点数据
 
 ```shell
 $ rm -rf chain_data/ data/
-$ cp -r /tmp/backup/190000/* ./
+$ cp -r /tmp/backup/1800/* ./
+```
+
+```shell
+$ rm -rf chain_data/ data/
+$ cp -r /tmp/export/* ./
 ```
