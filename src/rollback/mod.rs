@@ -14,33 +14,39 @@
 
 mod cloud_rollback;
 mod executor_rollback;
+mod rocksdb_rollback;
 mod storage_rollback;
 
 use crate::util::{executor_db_path, read_current_height, storage_db, StorageDb};
 pub use cloud_rollback::cloud_storage_rollback;
 pub use executor_rollback::executor_rollback;
+pub use rocksdb_rollback::rocksdb_rollback;
 use std::path::Path;
 pub use storage_rollback::storage_rollback;
 
 pub async fn rollback(config_path: &Path, height: u64, clean_consensus_data: bool) {
     let storage_db = storage_db(config_path).await;
-    let StorageDb::Opendal(storager) = &storage_db else {
-        panic!("rollback not support rocksdb")
-    };
-    let executor_db_path = &executor_db_path(config_path);
 
     let current_height = read_current_height(&storage_db).await;
     println!("current height: {}", current_height);
     println!("rollback height: {}", height);
     if height >= current_height {
         panic!(
-            "rollback height({}) > current height({})",
+            "rollback height({}) >= current height({})",
             height, current_height
         );
     }
 
     // rollback storage
-    storage_rollback(storager, height, clean_consensus_data).await;
+    if let StorageDb::Opendal(storager) = &storage_db {
+        storage_rollback(storager, height, clean_consensus_data).await;
+    } else if let StorageDb::RocksDB(storager) = &storage_db {
+        rocksdb_rollback(storager, height, true, clean_consensus_data);
+    } else {
+        panic!("not support storage type");
+    }
+
     // rollback executor
+    let executor_db_path = &executor_db_path(config_path);
     executor_rollback(executor_db_path, height);
 }

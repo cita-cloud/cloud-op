@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-use crate::util::{get_real_key, HASH_LEN};
+use crate::util::{get_real_key, HASH_LEN, OVERLORD_DATA, RAFT_DATA};
 use async_recursion::async_recursion;
 use cita_cloud_proto::blockchain::raw_transaction::Tx::UtxoTx;
 use cita_cloud_proto::blockchain::RawTransaction;
@@ -20,8 +20,6 @@ use prost::Message;
 use std::fs::remove_dir_all;
 use storage_opendal::storager::Storager;
 
-const OVERLORD_DATA: &str = "./overlord_wal";
-const RAFT_DATA: &str = "./raft-data-dir";
 const LOCK_ID_VERSION: u64 = 1_000;
 const LOCK_ID_CHAIN_ID: u64 = 1_001;
 const LOCK_ID_BUTTON: u64 = 1_008;
@@ -121,6 +119,7 @@ async fn chain_rollback(storager: &Storager, height: u64, clean_consensus_data: 
     }
 
     // rollback current height and delete height
+    // for storage_opendal current hash is a virtual key, so we only need to rollback current height
     storager
         .store(&get_real_key(0, &0u64.to_be_bytes()), &height.to_be_bytes())
         .await
