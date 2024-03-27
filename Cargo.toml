@@ -22,12 +22,12 @@ tokio = { version = "1.36", features = ["full"] }
 toml = "0.8"
 
 # storage
-storage_opendal = { git = "https://github.com/cita-cloud/storage_opendal", package = "storage", branch = "main" }
+storage_opendal = { git = "https://github.com/cita-cloud/storage_opendal", package = "storage", branch = "v6.7.3" }
 storage_rocksdb = { git = "https://github.com/cita-cloud/storage_rocksdb", package = "storage", branch = "v6.6.2-updated-rocksdb" }
 # executor
-executor_evm = { git = "https://github.com/cita-cloud/executor_evm", package = "executor", branch = "master" }
+executor_evm = { git = "https://github.com/cita-cloud/executor_evm", package = "executor", branch = "v6.7.3" }
 
-cita_cloud_proto = { git = "https://github.com/cita-cloud/cloud-common-rs" }
+cita_cloud_proto = "=6.7.3"
 
 [lints.rust]
 unsafe_code = "forbid"
