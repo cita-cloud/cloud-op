@@ -56,10 +56,9 @@ pub async fn storage_db(config_path: &Path) -> StorageDb {
             Storager::build(
                 &config.data_root,
                 &config.cloud_storage,
+                &config.exporter,
                 config.l1_capacity,
                 config.l2_capacity,
-                u32::MAX as u64,
-                config.retreat_interval,
             )
             .await,
         )

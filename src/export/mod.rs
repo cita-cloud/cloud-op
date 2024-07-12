@@ -66,10 +66,9 @@ pub async fn export(
         let write = Storager::build(
             storage_export_path.to_str().unwrap(),
             &config.cloud_storage,
+            &config.exporter,
             config.l1_capacity,
             config.l2_capacity,
-            u32::MAX as u64,
-            config.retreat_interval,
         )
         .await;
         for height in begin_height..=end_height {
@@ -110,10 +109,9 @@ pub async fn export(
         let write = Storager::build(
             storage_export_path.to_str().unwrap(),
             &config.cloud_storage,
+            &config.exporter,
             config.l1_capacity,
             config.l2_capacity,
-            u32::MAX as u64,
-            config.retreat_interval,
         )
         .await;
         for height in begin_height..=end_height {

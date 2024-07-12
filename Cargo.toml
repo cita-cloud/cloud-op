@@ -1,6 +1,6 @@
 [package]
 name = "cloud-op"
-version = "0.3.0"
+version = "0.3.1"
 authors = ["Yieazy <yuitta@163.com>"]
 license = "Apache-2.0"
 edition = "2021"
@@ -9,7 +9,7 @@ edition = "2021"
 
 [dependencies]
 clap = { version = "4.5", features = ["derive"] }
-prost = "0.12"
+prost = "0.13"
 hex = "0.4"
 cita-database = "0.5"
 cita-vm = "0.4"
@@ -17,17 +17,17 @@ cita-types = "0.1"
 cita_trie = "4.1"
 rlp = "0.5"
 fs_extra = "1.3"
-async-recursion = "1.0"
-tokio = { version = "1.36", features = ["full"] }
+async-recursion = "1.1"
+tokio = { version = "1.38", features = ["full"] }
 toml = "0.8"
 
 # storage
-storage_opendal = { git = "https://github.com/cita-cloud/storage_opendal", package = "storage", branch = "v6.7.3" }
+storage_opendal = { git = "https://github.com/cita-cloud/storage_opendal", package = "storage" }
 storage_rocksdb = { git = "https://github.com/cita-cloud/storage_rocksdb", package = "storage", branch = "v6.6.2-updated-rocksdb" }
 # executor
-executor_evm = { git = "https://github.com/cita-cloud/executor_evm", package = "executor", branch = "v6.7.3" }
+executor_evm = { git = "https://github.com/cita-cloud/executor_evm", package = "executor" }
 
-cita_cloud_proto = "=6.7.3"
+cita_cloud_proto = { git = "https://github.com/cita-cloud/cloud-common-rs" }
 
 [lints.rust]
 unsafe_code = "forbid"

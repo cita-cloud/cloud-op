@@ -91,10 +91,9 @@ pub async fn backup(config_path: PathBuf, mut backup_path: PathBuf, height: Opti
         let write = Storager::build(
             storage_backup_path.to_str().unwrap(),
             &storage_config.cloud_storage,
+            &storage_config.exporter,
             storage_config.l1_capacity,
             storage_config.l2_capacity,
-            u32::MAX as u64,
-            storage_config.retreat_interval,
         )
         .await;
         storage_rollback(&write, backup_height, false).await;

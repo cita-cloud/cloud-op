@@ -32,7 +32,7 @@ pub async fn cloud_storage_rollback(config_path: &Path, rollback_backup_height: 
 
     if let Ok(remote_height_bytes) = remote.read(&get_real_key(0, &1u64.to_be_bytes())).await {
         let mut buf: [u8; 8] = [0; 8];
-        buf.clone_from_slice(&remote_height_bytes[..8]);
+        buf.clone_from_slice(&remote_height_bytes.to_vec()[..8]);
         let current_backup_height = u64::from_be_bytes(buf);
         println!("current_backup_height: {current_backup_height}");
         // value of key(0, 1) include backup height(u64) and backup index(u32)
