@@ -11,15 +11,17 @@ edition = "2021"
 clap = { version = "4.5", features = ["derive"] }
 prost = "0.13"
 hex = "0.4"
+fs_extra = "1.3"
+async-recursion = "1.1"
+tokio = { version = "1.41", features = ["full"] }
+toml = "0.8"
+
+# keep same with executor_evm
 cita-database = "0.5"
 cita-vm = "0.4"
 cita-types = "0.1"
 cita_trie = "4.1"
 rlp = "0.5"
-fs_extra = "1.3"
-async-recursion = "1.1"
-tokio = { version = "1.38", features = ["full"] }
-toml = "0.8"
 
 # storage
 storage_opendal = { git = "https://github.com/cita-cloud/storage_opendal", package = "storage" }
