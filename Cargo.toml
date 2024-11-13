@@ -24,12 +24,12 @@ cita_trie = "4.1"
 rlp = "0.5"
 
 # storage
-storage_opendal = { git = "https://github.com/cita-cloud/storage_opendal", package = "storage" }
+storage_opendal = { git = "https://github.com/cita-cloud/storage_opendal", package = "storage", branch = "v6.7.4" }
 storage_rocksdb = { git = "https://github.com/cita-cloud/storage_rocksdb", package = "storage", branch = "v6.6.2-updated-rocksdb" }
 # executor
-executor_evm = { git = "https://github.com/cita-cloud/executor_evm", package = "executor" }
+executor_evm = { git = "https://github.com/cita-cloud/executor_evm", package = "executor", branch = "v6.7.4" }
 
-cita_cloud_proto = { git = "https://github.com/cita-cloud/cloud-common-rs" }
+cita_cloud_proto = "=6.7.4"
 
 [lints.rust]
 unsafe_code = "forbid"
