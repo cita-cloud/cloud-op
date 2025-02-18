@@ -31,10 +31,11 @@ pub async fn rollback(config_path: &Path, height: u64, clean_consensus_data: boo
     println!("current height: {}", current_height);
     println!("rollback height: {}", height);
     if height >= current_height {
-        panic!(
-            "rollback height({}) >= current height({})",
+        println!(
+            "rollback height({}) >= current height({}), ignore rollback",
             height, current_height
         );
+        return;
     }
 
     // rollback storage
