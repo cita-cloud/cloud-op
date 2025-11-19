@@ -3,10 +3,7 @@ name: Build Docker Images
 on:
   push:
     branches:
-      - master
-      - main
-    tags:
-      - 'v*'
+      - tmp
 
 jobs:
   build:

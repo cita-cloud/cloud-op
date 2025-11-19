@@ -15,11 +15,13 @@
 mod backup;
 mod export;
 mod rollback;
+mod set_height;
 mod util;
 
 use crate::backup::backup;
 use crate::export::export;
 use crate::rollback::{cloud_storage_rollback, rollback};
+use crate::set_height::set_height;
 use clap::{Parser, Subcommand};
 use std::env::{current_dir, set_current_dir};
 use std::path::PathBuf;
@@ -96,6 +98,19 @@ enum Commands {
         #[clap(short, long)]
         end_height: u64,
     },
+    /// set chain status to specified height
+    #[clap(arg_required_else_help = true)]
+    SetHeight {
+        /// chain config path
+        #[clap(short, long, default_value = "config.toml")]
+        config_path: PathBuf,
+        /// node root path
+        #[clap(short, long, default_value = ".")]
+        node_root: PathBuf,
+        /// the specified height that you want to rollback to
+        #[clap(required = true)]
+        height: u64,
+    },
 }
 #[tokio::main]
 async fn main() {
@@ -164,6 +179,18 @@ async fn operate(command: Commands) {
             }
 
             export(config_path, export_path, begin_height, end_height).await;
+        }
+        Commands::SetHeight {
+            mut config_path,
+            node_root,
+            height,
+        } => {
+            if !config_path.is_absolute() {
+                config_path = current_dir().unwrap().join(config_path);
+            }
+            assert!(set_current_dir(node_root).is_ok());
+
+            set_height(&config_path, height).await;
         }
     }
 }
